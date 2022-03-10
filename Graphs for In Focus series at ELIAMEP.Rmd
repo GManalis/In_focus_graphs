@@ -1,0 +1,3677 @@
+---
+title: "Graphs for In Focus series @ELIAMEP"
+author: "Georgios Manalis"
+date: "3/10/2022"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_knit$set(root.dir = "C:/Users/gnman/Desktop/Datafiles")
+knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(message = FALSE)
+knitr::opts_chunk$set(warning=FALSE)
+```
+
+
+```{r}
+library(rlang)
+library(wesanderson)
+library(dplyr)
+library(tidyverse)
+library(magrittr)
+library(ggplot2)
+library(gmodels)
+library(tidyverse)
+library(xlsx)
+library(xtable)
+library(tidyselect)
+library(ggpubr)
+library(rgdal)
+library(descr, quietly = TRUE)
+library(pander)
+library(kableExtra)
+library(clubSandwich)
+library(gmodels)
+library(foreign)
+library(summarytools)
+library(knitr)
+library(kableExtra)
+library(gridExtra)
+library(haven)
+library(weights)
+library(latex2exp)
+library(magick)
+library(webshot)
+library(ggridges)
+library(DescTools)
+library(lmtest)
+library(plm)
+library(stargazer)
+library(modelr)
+library(xlsx)
+# tinytex::install_tinytex()
+# # installing/loading the package:
+# if(!require(installr)) { install.packages("installr"); require(installr)} #load / install+load installr
+#  
+# # Installing pandoc
+# install.pandoc()
+select = dplyr::select
+# devtools::install_github("hadley/dplyr#2190")
+library(officer)
+library(gghighlight)
+library(ggthemes)
+```
+
+
+```{r vax socioeconomic event}
+Sys.getlocale()
+Sys.setlocale(category = "LC_ALL", locale = "Greek")
+
+data = read.csv("C:/Users/gnman/Google Drive/ELIAMEP - OBSERVATORY/In-Focus/Topics Material/Vaccination Reluctance/Luxembourg_Data_LaVoce/NoVax Adverse Socioeconomic Event - Sheet1.csv")
+data2 = pivot_longer(data, cols=c('YES', 'NO'), names_to='variable',
+values_to="value") %>% separate(value, c("value_perc", "perce"), "%") %>% mutate(value = as.numeric(value_perc)) %>% select(-value_perc, - perce) %>%
+  mutate(event = case_when(Share.of.no.vax.by.adverse.socioeconomic.event == "Feels at risk of losing job" ~ "Has respondent felt at risk of losing her/his job?", Share.of.no.vax.by.adverse.socioeconomic.event == "Has lost job since January 2020" ~ "Has respondent lost her/his job since January 2020?",Share.of.no.vax.by.adverse.socioeconomic.event == "Has worked fewer hours in last 3 months" ~ "Has respondent worked fewer hours in last 3 months?", Share.of.no.vax.by.adverse.socioeconomic.event == "Has earned less in last 3 months" ~ "Has respondent earned less in last 3 months?",  Share.of.no.vax.by.adverse.socioeconomic.event == "Partner has lost job after January 2020"~ "Has respondent's partner lost her/his job after January 2020?", Share.of.no.vax.by.adverse.socioeconomic.event == "Has applied for state support but has not received any" ~ "Has respondent applied for state support but has not received any?", Share.of.no.vax.by.adverse.socioeconomic.event =="Household income has fallen in last 3 months"~ "Has respondent's household income fallen in last 3 months?",TRUE ~ "na")) %>%
+mutate(event_gr = case_when(Share.of.no.vax.by.adverse.socioeconomic.event == "Feels at risk of losing job" ~ "Έχει νιώσει ο συμμετέχοντας ανασφάλεια σχετικά με απώλεια εργασίας;", Share.of.no.vax.by.adverse.socioeconomic.event == "Has lost job since January 2020" ~ "Έχει ο συμμετέχοντας απωλέσει την εργασία του από τον Ιανουάριο 2020;",Share.of.no.vax.by.adverse.socioeconomic.event == "Has worked fewer hours in last 3 months" ~ "Έχει εργαστεί ο συμμετέχοντας λιγότερες ώρες τους τελευταίους 3 μήνες;", Share.of.no.vax.by.adverse.socioeconomic.event == "Has earned less in last 3 months" ~ "Έχει ο συμμετέχοντας λιγότερες αποδοχές τους τελευταίους 3 μήνες;",  Share.of.no.vax.by.adverse.socioeconomic.event == "Partner has lost job after January 2020"~ "Έχει η/ο σύντροφος του συμμετέχοντα χάσει την εργασία της/του από τον Ιανουάριο 2020;", Share.of.no.vax.by.adverse.socioeconomic.event == 'Has applied for state support but has not received any' ~ "Έχει ο συμμετέχοντας κάνει αίτηση για κρατική ενίσχυση αλλά δεν την έλαβε;", Share.of.no.vax.by.adverse.socioeconomic.event =="Household income has fallen in last 3 months"~ "Έχει το οικογενειακό εισόδημα του συμμετέχοντα μειωθεί τους τελευταίους 3 μήνες;",TRUE ~ "na")) %>% select(-Share.of.no.vax.by.adverse.socioeconomic.event) %>%
+  mutate(variable_gr = case_when(variable == "YES" ~ "ΝΑΙ",variable == "NO" ~ "ΟΧΙ", TRUE ~ "na" )) %>%
+    mutate(across(event, factor, levels=c("Has respondent lost her/his job since January 2020?","Has respondent felt at risk of losing her/his job?", "Has respondent worked fewer hours in last 3 months?","Has respondent earned less in last 3 months?", "Has respondent's partner lost her/his job after January 2020?", "Has respondent applied for state support but has not received any?","Has respondent's household income fallen in last 3 months?" ))) %>%
+  mutate(across(event_gr, factor, levels=c("Έχει ο συμμετέχοντας απωλέσει την εργασία του από τον Ιανουάριο 2020;","Έχει νιώσει ο συμμετέχοντας ανασφάλεια σχετικά με απώλεια εργασίας;", "Έχει εργαστεί ο συμμετέχοντας λιγότερες ώρες τους τελευταίους 3 μήνες;","Έχει ο συμμετέχοντας λιγότερες αποδοχές τους τελευταίους 3 μήνες;", "Έχει η/ο σύντροφος του συμμετέχοντα χάσει την εργασία της/του από τον Ιανουάριο 2020;", "Έχει ο συμμετέχοντας κάνει αίτηση για κρατική ενίσχυση αλλά δεν την έλαβε;","Έχει το οικογενειακό εισόδημα του συμμετέχοντα μειωθεί τους τελευταίους 3 μήνες;" ))) %>%
+  mutate(across(variable_gr, factor, levels=c("ΟΧΙ", "ΝΑΙ")))
+
+levels(data2$variable_gr)
+
+
+ggplot(data2, aes(x = Countries, y = value, fill = variable))+
+    theme_bw()+
+    geom_bar(stat = "identity",position = "dodge")+
+    coord_flip()+
+  # facet_grid(rows = vars(Countries), scales = "free_y", space = "free_y", switch = "y")+
+    facet_wrap(~event,  scales = "free", strip.position = "top", labeller = label_wrap_gen(30))+
+scale_fill_manual(values = c("red", "blue"))+
+  theme(panel.border = element_blank(),
+           strip.text.x = element_text(size = 10, angle = 0, face = "bold"),
+        axis.text.y = element_text(color = "grey20", size = 10, angle = 0, face = "bold"),
+        axis.text.x = element_text(color = "grey20", size = 10, angle = 0, face = "bold"),
+        legend.title = element_blank(),
+        plot.title = element_text(size = 20, hjust =  -0.18),
+        plot.caption = element_text(hjust = -0.55, size = 10)
+        )+
+    xlab("")+ylab("")+
+    guides(fill = guide_legend(reverse = TRUE))+
+  ggtitle("Share (%) of anti-vaxxers by adverse effect of the pandemic")+ ylim(c(0,45))+
+  labs(caption="Chart: ELIAMEP, Source: Conchita D’Ambrosio & Giorgia Menta 'Identikit dei no-vax' lavoce.info 28/09/2021 (https://www.lavoce.info/archives/89893/identikit-dei-no-vax/)")
+
+
+Sys.getlocale()
+Sys.setlocale(category = "LC_ALL", locale = "Greek")
+
+ggplot(data2, aes(x = Countries, y = value, fill = variable_gr))+
+    theme_bw()+
+    geom_bar(stat = "identity",position = "dodge")+
+    coord_flip()+
+  # facet_grid(rows = vars(Countries), scales = "free_y", space = "free_y", switch = "y")+
+    facet_wrap(~event_gr,  scales = "free", strip.position = "top", labeller = label_wrap_gen(30))+
+    scale_fill_manual(values = c("red", "blue"))+
+    theme(panel.border = element_blank(),
+          strip.text.x = element_text(size = 10, angle = 0, face = "bold"),
+          axis.text.y = element_text(color = "grey20", size = 10, angle = 0, face = "bold"),
+          axis.text.x = element_text(color = "grey20", size = 10, angle = 0, face = "bold"),
+          legend.title = element_blank(),
+          plot.title = element_text(size = 20, hjust = -0.3),
+          plot.caption = element_text(hjust = -1.4, size = 10))+
+    xlab("")+ylab("")+
+    guides(fill = guide_legend(reverse = TRUE))+
+    ggtitle("Ποσοστό (%) αντιεμβολιαστών ανά δυσμενή επίδραση της πανδημίας ")+ ylim(c(0,45))+
+    labs(caption="Γράφημα: ΕΛΙΑΜΕΠ, Πηγή Δεδομένων: Conchita D’Ambrosio & Giorgia Menta 'Identikit dei    no-vax' lavoce.info 28/09/2021 (https://www.lavoce.info/archives/89893/identikit-dei-no-vax/)")
+
+
+
+####### GREAT RESIGNATION 
+library(ggtext)
+data = read.xlsx("C:/Users/gnman/Desktop/The Great Resignation/graph - great resignation.xlsx", 1)
+colnames(data)[colnames(data)=="NA."]="Countries"
+
+data = data %>% filter(!is.na(JVR.2021q2)) %>% select("Countries","JVR.2021q2", "UR.2021q2" ) %>% 
+     mutate(cntr = case_when(Countries == "Czechia" ~ "CZE", 
+                             Countries == "EU27" ~ "EU27",
+                             Countries == "EA19" ~ "EA19",
+                             Countries == "Belgium" ~ "BEL",
+                             Countries == "Netherlands" ~ "NLD",
+                             Countries == "Austria" ~ "AUT",
+                             Countries == "Denmark" ~ "DNK",
+                             Countries == "Germany" ~ "DEU",
+                             Countries == "Slovenia" ~ "SVN",
+                             Countries == "Cyprus" ~ "CYP",
+                             Countries == "Latvia" ~ "LVA",
+                             Countries == "Sweden" ~ "SWE",
+                             Countries == "Finland" ~ "FIN",
+                             Countries == "Italy" ~ "ITA",
+                             Countries == "Hungary" ~ "HUN",
+                             Countries == "Malta" ~ "MLT",
+                             Countries == "Luxembourg" ~ "LUX",
+                             Countries == "Lithuania" ~ "LTU",
+                             Countries == "Estonia" ~ "EST",
+                             Countries == "Croatia" ~ "HRV",
+                             Countries == "Poland" ~ "POL",
+                             Countries == "Romania" ~ "ROU",
+                             Countries == "Bulgaria" ~ "BGR",
+                             Countries == "Portugal" ~ "PRT",
+                             Countries == "Slovakia" ~ "SVK",
+                             Countries == "Ireland" ~ "IRL",
+                             Countries == "Spain" ~ "ESP",
+                             Countries == "Greece" ~ "GRC"
+                             ,TRUE ~ "na"))
+
+ggplot(data, aes(x = UR.2021q2, y = JVR.2021q2))+
+    theme_bw()+
+    geom_point(size = 3, shape = 23, color="darkred",fill="darkred")+
+    geom_text(
+    label=data$cntr, 
+    nudge_x = 0.15, nudge_y = 0.15, 
+    # check_overlap = T
+  )+
+    # coord_flip()+
+  # facet_grid(rows = vars(Countries), scales = "free_y", space = "free_y", switch = "y")+
+#     facet_wrap(~event,  scales = "free", strip.position = "top", labeller = label_wrap_gen(30))+
+# scale_fill_manual(values = c("red", "blue"))+
+  theme( 
+      # panel.border = element_blank(),
+      # strip.text.x = element_text(size = 10, angle = 0, face = "bold"),
+        axis.text.y = element_text(color = "grey20", size = 10, angle = 0, face = "bold"),
+        axis.text.x = element_text(color = "grey20", size = 10, angle = 0, face = "bold"),
+        legend.title = element_blank(),
+        plot.title = element_text(size = 20),
+        # plot.caption = element_text(size = 10, hjust = 0),
+        plot.caption = element_text(size = 11, hjust = 0),
+        axis.title.x = element_text(size = 15, angle = 00),
+        axis.title.y = element_text(size = 15, angle = 90)
+        )+
+    xlab("Unemployment rate (%) Q2:2021")+ylab("Job vacancy rate (%) Q2:2021")+
+    # guides(fill = guide_legend(reverse = TRUE))+
+  ggtitle("Job vacancy rate (%) and Unemployment rate (%) by country")+ 
+  labs(caption="Chart: ELIAMEP, Source: Eurostat - Job vacancy statistics,\nFigures for Denmark and Ireland refer to Q1:2021")
+
+
+Sys.getlocale()
+Sys.setlocale(category = "LC_ALL", locale = "Greek")
+
+ggplot(data, aes(x = UR.2021q2, y = JVR.2021q2))+
+    theme_bw()+
+    geom_point(size = 3, shape = 23, color="darkred",fill="darkred")+
+    geom_text(
+    label=data$cntr, 
+    nudge_x = 0.15, nudge_y = 0.15, 
+    # check_overlap = T
+  )+
+    # coord_flip()+
+  # facet_grid(rows = vars(Countries), scales = "free_y", space = "free_y", switch = "y")+
+#     facet_wrap(~event,  scales = "free", strip.position = "top", labeller = label_wrap_gen(30))+
+# scale_fill_manual(values = c("red", "blue"))+
+  theme( 
+      # panel.border = element_blank(),
+      # strip.text.x = element_text(size = 10, angle = 0, face = "bold"),
+        axis.text.y = element_text(color = "grey20", size = 10, angle = 0, face = "bold"),
+        axis.text.x = element_text(color = "grey20", size = 10, angle = 0, face = "bold"),
+        legend.title = element_blank(),
+        plot.title = element_text(size = 20),
+        # plot.caption = element_text(size = 10, hjust = 0),
+        plot.caption = element_text(size = 11, hjust = 0),
+        axis.title.x = element_text(size = 15, angle = 00),
+        axis.title.y = element_text(size = 15, angle = 90),
+        # plot.caption = element_text(lineheight = 3.0)
+        )+
+    xlab("Ποσοστό ανεργίας (%) Q2:2021")+ylab("Ποσοστό κενών θέσεων εργασίας (%) Q2:2021")+
+    # guides(fill = guide_legend(reverse = TRUE))+
+  ggtitle("Ποσοστό κενών θέσεων εργασίας (%) και Ποσοστό ανεργίας (%) ανα χώρα")+ 
+  labs(caption="Γράφημα: ΕΛΙΑΜΕΠ, Source: Eurostat - Job vacancy statistics,\nΔεδομένα για Δανία και Ιρλανδία αναφέρονται στο Q1:2021")
+
+
+####### MINIMUM WAGES
+Sys.getlocale()
+Sys.setlocale(category = "LC_ALL", locale = "Greek")
+
+
+
+data_mw = read.xlsx("C:/Users/gnman/Desktop/The Great Resignation/Eurofound min wages data points.xlsx", 1) %>% select(-cntr) 
+
+data_mw_2 = pivot_longer(data_mw, "Minimum.wage.earners":"Rest.of.employees", names_to = "class", values_to = "rate") %>% mutate(class_gr = case_when(class == "Minimum.wage.earners"~"Αμειβόμενοι με τον κατώτατο μισθό", 
+                                                TRUE ~ "Λοιποί μισθωτοί")) %>% mutate(class = case_when(class == "Minimum.wage.earners"~"Minimum wage earners", 
+                                                TRUE ~ "Rest of employees")) %>% 
+    mutate(country_gr = case_when(Countries == "Greece"~"Ελλάδα",
+Countries == "Romania" ~ "Ρουμανία",
+Countries == "Hungary"~ "Ουγγαρία",
+Countries == "Bulgaria"~ "Βουλγαρία",
+Countries == "Croatia"~ "Κροατία",
+Countries == "Malta"~ "Μάλτα",
+Countries == "Slovakia" ~ "Σλοβακία",
+Countries == "Lithuania"~ "Λιθουανία",
+Countries == "Latvia"~ "Λετονία",
+Countries == "France"~ "Γαλλία",
+Countries == "Czechia"~ "Τσεχία",
+Countries == 'UK'~ "ΗΒ",
+Countries == "EU"~ "ΕΕ",
+Countries == "Spain"~ "Ισπανία",
+Countries == "Ireland"~"Ιρλανδία",
+Countries == "Slovenia"~ "Σλοβενία",
+Countries == "Portugal"~ "Πορτογαλία",
+Countries == "Poland"~ "Πολωνία",
+Countries == 'Belgium'~ "Βέλγιο",
+Countries == 'Germany'~ "Γερμανία",
+Countries == "Estonia"~ "Εσθονία",
+Countries == "Luxembourg"~ "Λουξεμβούργο",
+Countries == 'Netherlands'~ "Ολλανδία", 
+TRUE ~ "NA"))
+ 
+data_mw_2$Countries <- factor(data_mw_2$Countries, levels=c("Greece",
+"Romania",
+"Hungary",
+"Bulgaria",
+"Croatia",
+"Malta",
+"Slovakia",
+"Lithuania",
+"Latvia",
+"France",
+"Czechia",
+'UK',
+"EU",
+"Spain",
+"Ireland",
+"Slovenia",
+"Portugal",
+"Poland",
+'Belgium',
+'Germany',
+"Estonia",
+"Luxembourg",
+'Netherlands')) 
+
+data_mw_2$country_gr <- factor(data_mw_2$country_gr, levels=c(
+"Ελλάδα",
+"Ρουμανία",
+"Ουγγαρία",
+ "Βουλγαρία",
+"Κροατία",
+"Μάλτα",
+ "Σλοβακία",
+ "Λιθουανία",
+"Λετονία",
+"Γαλλία",
+"Τσεχία",
+ "ΗΒ",
+"ΕΕ",
+"Ισπανία",
+"Ιρλανδία",
+"Σλοβενία",
+"Πορτογαλία",
+ "Πολωνία",
+ "Βέλγιο",
+"Γερμανία",
+ "Εσθονία",
+ "Λουξεμβούργο",
+"Ολλανδία"))
+
+
+ggplot(data_mw_2, aes(country_gr, rate, fill = class_gr, group = class_gr))+
+    theme_bw()+
+    geom_bar(stat = "identity",position = "dodge")+
+    # coord_flip()+
+  # facet_grid(rows = vars(Countries), scales = "free_y", space = "free_y", switch = "y")+
+    # facet_wrap(~event_gr,  scales = "free", strip.position = "top", labeller = label_wrap_gen(30))+
+    scale_fill_manual(values = c("#FF6666", "#339900"))+
+   theme( 
+      # panel.border = element_blank(),
+      # strip.text.x = element_text(size = 10, angle = 0, face = "bold"),
+        axis.text.y = element_text(color = "grey20", size = 10, angle = 0, face = "bold"),
+        axis.text.x = element_text(color = "grey20", size = 10, angle = 90, face = "bold"),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 12),
+        plot.title = element_text(size = 20),
+        # plot.caption = element_text(size = 10, hjust = 0),
+        plot.caption = element_text(size = 11, hjust = 0),
+        axis.title.x = element_text(size = 15, angle = 90),
+        axis.title.y = element_text(size = 15, angle = 90),
+        # plot.caption = element_text(lineheight = 3.0), 
+        legend.position = "top"
+        )+
+    xlab("")+ylab("%")+
+    # guides(fill = guide_legend(reverse = TRUE))+
+    ggtitle("Ποσοστό (%) υλικά στερημένων ανά επίπεδο μισθού")+
+    labs(caption="Γράφημα: ΕΛΙΑΜΕΠ, Πηγή Δεδομένων: Carlos Vacas-Soriano\n'Minimum wage—yet another gender divide?' Social Europe 28/10/2021\n(https://socialeurope.eu/minimum-wage-yet-another-gender-divide)")
+
+ggplot(data_mw_2, aes(Countries, rate, fill = class, group = class))+
+    theme_bw()+
+    geom_bar(stat = "identity",position = "dodge")+
+    # coord_flip()+
+  # facet_grid(rows = vars(Countries), scales = "free_y", space = "free_y", switch = "y")+
+    # facet_wrap(~event_gr,  scales = "free", strip.position = "top", labeller = label_wrap_gen(30))+
+    scale_fill_manual(values = c("#FF6666", "#339900"))+
+   theme( 
+      # panel.border = element_blank(),
+      # strip.text.x = element_text(size = 10, angle = 0, face = "bold"),
+        axis.text.y = element_text(color = "grey20", size = 10, angle = 0, face = "bold"),
+        axis.text.x = element_text(color = "grey20", size = 10, angle = 90, face = "bold"),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 12),
+        plot.title = element_text(size = 20),
+        # plot.caption = element_text(size = 10, hjust = 0),
+        plot.caption = element_text(size = 11, hjust = 0),
+        axis.title.x = element_text(size = 15, angle = 90),
+        axis.title.y = element_text(size = 15, angle = 90),
+        # plot.caption = element_text(lineheight = 3.0), 
+        legend.position = "top"
+        )+
+    xlab("")+ylab("%")+
+    # guides(fill = guide_legend(reverse = TRUE))+
+    ggtitle("Rate (%) of materially deprived per wage class")+
+    labs(caption="Graph: ELIAMEP, Source: Carlos Vacas-Soriano\n'Minimum wage—yet another gender divide?' Social Europe 28/10/2021\n(https://socialeurope.eu/minimum-wage-yet-another-gender-divide)")
+
+
+
+####### LABOUR SHORTAGES
+Sys.getlocale()
+Sys.setlocale(category = "LC_ALL", locale = "Greek")
+
+
+
+data_ls = read.xlsx("C:/Users/gnman/Desktop/The Great Resignation/Labour shortages.xlsx", 1)
+
+data_ls_2 = pivot_longer(data_ls, "Upper.secondary.or.post.secondary":"Tertiary", names_to = "class", values_to = "rate") %>% mutate(class_gr = case_when(class == "Upper.secondary.or.post.secondary"~"Λυκειακή & Μεταλυκειακή Εκπαίδευση", 
+                                                TRUE ~ "Τριτοβάθμια Εκπαίδευση")) %>% mutate(class = case_when(class == "Upper.secondary.or.post.secondary"~"Upper secondary or post secondary", 
+                                                TRUE ~ "Tertiary")) %>% 
+    mutate(country_gr = case_when(Countries == "Greece"~"Ελλάδα",
+Countries == "Chile" ~ "Χιλή",
+Countries == "Finland"~ "Φιλανδία",
+Countries == "Germany"~ "Γερμανία",
+Countries == "Japan"~ "Ιαπωνία",
+Countries == "Malta"~ "Μάλτα",
+Countries == "Slovak Republic" ~ "Σλοβακία",
+Countries == "Lithuania"~ "Λιθουανία",
+Countries == "Latvia"~ "Λετονία",
+Countries == "France"~ "Γαλλία",
+Countries == "Czech Republic"~ "Τσεχία",
+Countries == 'Korea'~ "Κορέα",
+Countries == "Sweden"~ "Σουηδία",
+Countries == "Spain"~ "Ισπανία",
+Countries == "Ireland"~"Ιρλανδία",
+Countries == "Slovenia"~ "Σλοβενία",
+Countries == "Portugal"~ "Πορτογαλία",
+Countries == "Poland"~ "Πολωνία",
+Countries == 'Belgium'~ "Βέλγιο",
+Countries == 'Greece'~ "Ελλάδα",
+Countries == "Estonia"~ "Εσθονία",
+Countries == "Austria"~ "Αυστρία",
+Countries == 'Netherlands'~ "Ολλανδία",
+Countries ==  "United States"~"ΗΠΑ",
+Countries ==  "Norway"~"Νορβηγία",
+Countries ==  "Singapore"~"Σιγκαπούρη",
+Countries ==  "United Kingdom"~"ΗΒ",
+Countries ==  "Australia"~"Αυστραλία",
+Countries ==  "Denmark"~"Δανία",
+Countries ==  "New Zealand"~"Νέα Ζηλανδία",
+Countries ==  "Canada"~"Καναδάς",
+Countries ==  "Israel"~"Ισραήλ",
+Countries ==  "Turkey"~"Τουρκία",
+TRUE ~ "NA"))
+ 
+data_ls_2$Countries <- factor(data_ls_2$Countries, levels=c(
+'Belgium',
+"Czech Republic",
+"Finland",
+"Germany",
+"Japan",
+"Netherlands",
+'Austria',
+'Korea',
+"Slovak Republic",
+"Sweden",
+"United States",
+"Estonia",
+"Singapore",
+"Norway",
+"Ireland",
+"Slovenia",
+"United Kingdom",
+"Australia",
+"Denmark",
+"New Zealand",
+"Canada",
+"Poland",
+"Lithuania",
+"Israel",
+"Chile",
+"Greece",
+"Turkey")) 
+
+data_ls_2$country_gr <- factor(data_ls_2$country_gr, levels=c(
+'Βέλγιο',
+"Τσεχία",
+"Φιλανδία",
+"Γερμανία",
+"Ιαπωνία",
+"Ολλανδία",
+'Αυστρία',
+'Κορέα',
+"Σλοβακία",
+"Σουηδία",
+"ΗΠΑ",
+"Εσθονία",
+"Σιγκαπούρη",
+"Νορβηγία",
+"Ιρλανδία",
+"Σλοβενία",
+"ΗΒ",
+"Αυστραλία",
+"Δανία",
+"Νέα Ζηλανδία",
+"Καναδάς",
+"Πολωνία",
+"Λιθουανία",
+"Ισραήλ",
+"Χιλή",
+"Ελλάδα",
+"Τουρκία"))
+
+
+ggplot(data_ls_2, aes(country_gr, rate, fill = class_gr, group = class_gr))+
+    theme_bw()+
+    geom_bar(stat = "identity",position = "dodge")+
+    # coord_flip()+
+  # facet_grid(rows = vars(Countries), scales = "free_y", space = "free_y", switch = "y")+
+    # facet_wrap(~event_gr,  scales = "free", strip.position = "top", labeller = label_wrap_gen(30))+
+    scale_fill_manual(values = c("lightgreen", "royalblue2"))+
+   theme( 
+      # panel.border = element_blank(),
+      # strip.text.x = element_text(size = 10, angle = 0, face = "bold"),
+        axis.text.y = element_text(color = "grey20", size = 10, angle = 0, face = "bold"),
+        axis.text.x = element_text(color = "grey20", size = 10, angle = 90, face = "bold"),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 12),
+        plot.title = element_text(size = 20),
+        # plot.caption = element_text(size = 10, hjust = 0),
+        plot.caption = element_text(size = 11, hjust = 0),
+        axis.title.x = element_text(size = 15, angle = 90),
+        axis.title.y = element_text(size = 15, angle = 90),
+        # plot.caption = element_text(lineheight = 3.0), 
+        legend.position = "top"
+        )+
+    xlab("")+ylab("%")+
+    # guides(fill = guide_legend(reverse = TRUE))+
+    ggtitle("Ποσοστό (%) αποφοίτων (ηλικίας 20-34 ετών) που στερούνται βασικών δεξιοτήτων ανά χώρα \nκαι εκπαιδευτική βαθμίδα")+
+    labs(caption="Γράφημα: ΕΛΙΑΜΕΠ, Πηγή Δεδομένων: Έρευνα Δεξιοτἠτων Ενηλίκων (PIAAC) του ΟΟΣΑ \nΔεδομένα για Χιλή, Ελλάδα, Ισραήλ, Λιθουανία, Νέα Ζηλανδία, Σιγκαπούρη, Σλοβενία και Τουρκία αναφέρονται στο έτος 2015.\nΌλα τα υπόλοιπα αναφέρονται στο έτος 2012")
+
+ggplot(data_ls_2, aes(Countries, rate, fill = class, group = class))+
+    theme_bw()+
+    geom_bar(stat = "identity",position = "dodge")+
+    # coord_flip()+
+  # facet_grid(rows = vars(Countries), scales = "free_y", space = "free_y", switch = "y")+
+    # facet_wrap(~event_gr,  scales = "free", strip.position = "top", labeller = label_wrap_gen(30))+
+    scale_fill_manual(values = c("royalblue2", "lightgreen"))+
+   theme( 
+      # panel.border = element_blank(),
+      # strip.text.x = element_text(size = 10, angle = 0, face = "bold"),
+        axis.text.y = element_text(color = "grey20", size = 10, angle = 0, face = "bold"),
+        axis.text.x = element_text(color = "grey20", size = 10, angle = 90, face = "bold"),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 12),
+        plot.title = element_text(size = 20),
+        # plot.caption = element_text(size = 10, hjust = 0),
+        plot.caption = element_text(size = 11, hjust = 0),
+        axis.title.x = element_text(size = 15, angle = 90),
+        axis.title.y = element_text(size = 15, angle = 90),
+        # plot.caption = element_text(lineheight = 3.0), 
+        legend.position = "top"
+        )+
+    xlab("")+ylab("%")+
+    # guides(fill = guide_legend(reverse = TRUE))+
+    ggtitle("Rate (%) of graduates (20-34 years of age) lacking basic skills per country \nand educational level")+
+    labs(caption="Graph: ELIAMEP, Source: International Assessment of Adult Competencies (PIAAC), OECD\nChile, Greece, Israel, Lithuania, New Zealand, Singapore, Slovenia and Turkey: Year of reference 2015. \nAll other countries: Year of reference 2012.")
+
+
+
+### OECD HIRING DIFFICULTIES
+Sys.getlocale()
+Sys.setlocale(category = "LC_ALL", locale = "Greek")
+columns = c("Greece", "OECD")
+columns_gr = c("Ελλάδα", "ΟΟΣΑ (Μ.Ο.)")
+numbers = c(61, 41.80769231)
+data.hd =data.frame(columns, numbers)
+data.hd_gr=data.frame(columns_gr, numbers)
+
+ggplot(data.hd_gr, aes(columns_gr, numbers, fill = columns))+
+    theme_bw()+
+    geom_bar(stat = "identity",width = 0.5, position = "dodge")+
+    # coord_flip()+
+  # facet_grid(rows = vars(Countries), scales = "free_y", space = "free_y", switch = "y")+
+    # facet_wrap(~event_gr,  scales = "free", strip.position = "top", labeller = label_wrap_gen(30))+
+    scale_fill_manual(values = c("royalblue2", "lightgreen"))+
+   theme( 
+      # panel.border = element_blank(),
+      # strip.text.x = element_text(size = 10, angle = 0, face = "bold"),
+        axis.text.y = element_text(color = "grey20", size = 18, angle = 0, face = "bold"),
+        axis.text.x = element_text(color = "grey20", size = 18, angle = 0, face = "bold"),
+        legend.title = element_blank(),
+        legend.text = element_blank(),
+        plot.title = element_text(size = 20),
+        # plot.caption = element_text(size = 10, hjust = 0),
+        plot.caption = element_text(size = 11, hjust = 0),
+        axis.title.x = element_text(size = 15, angle = 90),
+        axis.title.y = element_text(size = 15, angle = 90),
+        # plot.caption = element_text(lineheight = 3.0), 
+        legend.position = "none"
+        )+
+    xlab("")+ylab("%")+
+    # guides(fill = guide_legend(reverse = TRUE))+
+    ggtitle("Ποσοστό (%) εργοδοτών που αντιμετωπίζει δυσκολίες πρόσληψης εργατικού δυναμικού")+
+    labs(caption="Γράφημα: EΛΙΑΜΕΠ, Πηγή: OECD Labour Market Programmes database ")
+
+#### HIRING DIFFICULTIES #2
+
+countries = c("Greece","Greece","Greece","Greece",
+              "Italy","Italy","Italy","Italy",
+              "Portugal","Portugal","Portugal","Portugal",
+              "Germany","Germany","Germany","Germany", 
+              "France","France","France","France",
+              "UK","UK","UK","UK")
+
+countries_gr = c("Ελλάδα","Ελλάδα","Ελλάδα","Ελλάδα",
+              "Ιταλία","Ιταλία","Ιταλία","Ιταλία",
+              "Πορτογαλία","Πορτογαλία","Πορτογαλία","Πορτογαλία",
+              "Γερμανία","Γερμανία","Γερμανία","Γερμανία", 
+              "Γαλλία","Γαλλία","Γαλλία","Γαλλία",
+              "ΗΒ","ΗΒ","ΗΒ","ΗΒ")
+
+size_gr = c("i. < 10 εργαζόμενοι","ii. 10-49 εργαζόμενοι","iii. 50-250 εργαζόμενοι","iv. 250+ εργαζόμενοι",
+              "i. < 10 εργαζόμενοι","ii. 10-49 εργαζόμενοι","iii. 50-250 εργαζόμενοι","iv. 250+ εργαζόμενοι",
+              "i. < 10 εργαζόμενοι","ii. 10-49 εργαζόμενοι","iii. 50-250 εργαζόμενοι","iv. 250+ εργαζόμενοι",
+              "i. < 10 εργαζόμενοι","ii. 10-49 εργαζόμενοι","iii. 50-250 εργαζόμενοι","iv. 250+ εργαζόμενοι", 
+              "i. < 10 εργαζόμενοι","ii. 10-49 εργαζόμενοι","iii. 50-250 εργαζόμενοι","iv. 250+ εργαζόμενοι",
+              "i. < 10 εργαζόμενοι","ii. 10-49 εργαζόμενοι","iii. 50-250 εργαζόμενοι","iv. 250+ εργαζόμενοι")
+
+size = c("i. < 10 employees","ii. 10-49 employees","iii. 50-250 employees","iv. 250+ employees",
+              "i. < 10 employees","ii. 10-49 employees","iii. 50-250 employees","iv. 250+ employees",
+              "i. < 10 employees","ii. 10-49 employees","iii. 50-250 employees","iv. 250+ employees",
+              "i. < 10 employees","ii. 10-49 employees","iii. 50-250 employees","iv. 250+ employees", 
+              "i. < 10 employees","ii. 10-49 employees","iii. 50-250 employees","iv. 250+ employees",
+              "i. < 10 employees","ii. 10-49 employees","iii. 50-250 employees","iv. 250+ employees")
+
+values = c("91","97","75","83",
+           "85","83","85","86",
+           "67","69","52","58",
+            "65","80","83","87", 
+            "83","86","91","87",
+            "84","76","81","68")
+
+data.hd_man =data.frame(countries, countries_gr, size_gr, size, values) %>% 
+    mutate(countries_gr = factor(countries_gr, levels=c("ΗΒ","Γερμανία","Γαλλία","Πορτογαλία","Ιταλία","Ελλάδα"))) %>%
+  mutate(countries = factor(countries, levels=c("UK", "Germany", "France", "Portugal", "Italy","Greece"))) %>% mutate(values = as.numeric(values))
+
+
+ggplot(data.hd_man, aes(x = countries_gr, y = as.numeric(values), fill =countries_gr ))+
+    theme_bw()+
+    geom_bar(stat = "identity",position = "dodge")+
+    coord_flip()+
+  scale_fill_manual(values = c("blue","gold","royalblue2","red2","forestgreen", "dodgerblue2" ))+
+  # facet_grid(rows = vars(Countries), scales = "free_y", space = "free_y", switch = "y")+
+    facet_wrap(~size_gr, scales = "free", strip.position = "top", labeller = label_wrap_gen(30))+
+  theme(panel.border = element_blank(),
+           strip.text.x = element_text(size = 10, angle = 0, face = "bold"),
+        axis.text.y = element_text(color = "grey20", size = 10, angle = 0, face = "bold"),
+        axis.text.x = element_text(color = "grey20", size = 10, angle = 0, face = "bold"),
+        legend.title = element_blank(),
+        legend.position = "none",
+        plot.title = element_text(size = 20),
+        plot.caption = element_text(hjust = 0, size = 10),
+        axis.line=element_line()
+  )+
+    xlab("χώρες")+ylab("%")+
+    guides(fill = guide_legend(reverse = TRUE))+
+  ggtitle("Ποσοστό (%) εργοδοτών που αντιμετωπίζουν δυσκολία πρόσληψης \nεργατικού δυναμικού ανά μέγεθος επιχείρησης ")+ 
+  scale_y_continuous(limits=c(0,100), breaks = c(0,20,40,60,80,100))+
+  labs(caption="Γράφημα: ΕΛΙΑΜΕΠ, Πηγή: Manpower talent shortage survey (2018)")
+str(data.hd_man$values)
+
+ggplot(data.hd_man, aes(x = countries, y = values, fill =countries))+
+    theme_bw()+
+    geom_bar(stat = "identity",position = "dodge")+
+    coord_flip()+
+  scale_fill_manual(values = c("blue","gold","royalblue2","red2","forestgreen", "dodgerblue2" ))+
+  # facet_grid(rows = vars(Countries), scales = "free_y", space = "free_y", switch = "y")+
+    facet_wrap(~size, scales = "free", strip.position = "top", labeller = label_wrap_gen(30))+
+  theme(panel.border = element_blank(),
+           strip.text.x = element_text(size = 10, angle = 0, face = "bold"),
+        axis.text.y = element_text(color = "grey20", size = 10, angle = 0, face = "bold"),
+        axis.text.x = element_text(color = "grey20", size = 10, angle = 0, face = "bold"),
+        legend.title = element_blank(),
+        legend.position = "none",
+        plot.title = element_text(size = 20),
+        plot.caption = element_text(hjust = 0, size = 10)
+  )+
+    xlab("countries")+ylab("%")+
+    guides(fill = guide_legend(reverse = TRUE))+
+  ggtitle("Share (%) of employers facing hiring difficulties by size of business")+ 
+   # xlim(50,100)+
+  scale_y_continuous(limits=c(0,100), breaks = c(0,20,40,60,80,100))+
+  labs(caption="Graph: ELIAMEP, Source: Manpower talent shortage survey (2018)")
+```
+
+
+```{r Flip Side of Skill Shortages}
+####### Firms offerings Skills Training
+Sys.getlocale()
+Sys.setlocale(category = "LC_ALL", locale = "Greek")
+
+str(data_st$Percentage)
+
+data_st = read.xlsx("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/December/graph training.xlsx", 1) %>% 
+  mutate(percentage = as.numeric(Percentage)) %>% 
+      mutate(Type_gr = case_when(Type == "Total"~"Σύνολο των επιχειρήσεων", 
+                                                TRUE ~ "Μεγάλες επιχειρήσεις (250+ εργαζόμενοι)")) %>% 
+  mutate(Type = case_when(Type == "Total"~"All firms", 
+                          TRUE ~ "Large firms (250+ employees)")) %>% 
+mutate(Countries = case_when(Countries == "European Union - 27 countries (from 2020)" ~ "EU-27", 
+                             Countries == "Germany (until 1990 former territory of the FRG)"~ "Germany", 
+                             Countries == "United Kingdom"~"UK", TRUE ~ as.character(Countries)))%>% 
+mutate(country_gr = case_when(
+Countries == "Greece"~"Ελλάδα",
+Countries == "Romania" ~ "Ρουμανία",
+Countries == "Hungary"~ "Ουγγαρία",
+Countries == "Bulgaria"~ "Βουλγαρία",
+Countries == "Croatia"~ "Κροατία",
+Countries == "Malta"~ "Μάλτα",
+Countries == "Slovakia" ~ "Σλοβακία",
+Countries == "Lithuania"~ "Λιθουανία",
+Countries == "Latvia"~ "Λετονία",
+Countries == "France"~ "Γαλλία",
+Countries == "Czechia"~ "Τσεχία",
+Countries == 'UK'~ "ΗΒ",
+Countries == "EU"~ "ΕΕ",
+Countries == "Spain"~ "Ισπανία",
+Countries == "Ireland"~"Ιρλανδία",
+Countries == "Slovenia"~ "Σλοβενία",
+Countries == "Portugal"~ "Πορτογαλία",
+Countries == "Poland"~ "Πολωνία",
+Countries == 'Belgium'~ "Βέλγιο",
+Countries == 'Germany'~ "Γερμανία",
+Countries == "Estonia"~ "Εσθονία",
+Countries == "Luxembourg"~ "Λουξεμβούργο",
+Countries == 'Netherlands'~ "Ολλανδία", 
+Countries == 'Denmark'~ "Δανία",
+Countries == 'Italy'~ "Ιταλία",
+Countries == 'Cyprus'~ "Κύπρος",
+Countries == 'Austria'~ "Αυστρία",
+Countries == 'Finland'~ "Φιλανδία",
+Countries == 'Sweden'~ "Σουηδία",
+Countries == 'Norway'~ "Νορβηγία",
+Countries == 'UK'~ "ΗΒ",
+Countries == 'Germany'~ "Γερμανία",
+Countries == 'EU-27'~ "ΕΕ-27",
+TRUE ~ "NA"))
+#  
+data_st$Countries <- factor(data_st$Countries, 
+                            levels=c("Greece",
+"Romania",
+"Bulgaria",
+"Hungary",
+"Poland",
+"Croatia",
+"Italy",
+"Lithuania",
+"Malta",
+"Cyprus",
+"Slovakia",
+"EU-27",
+'Portugal',
+'Luxembourg',
+'Germany', 
+'Ireland',
+'France',
+'Finland',
+'Belgium',
+'Slovenia',
+'Netherlands',
+'UK',
+'Spain',
+'Estonia',
+'Denmark',
+'Austria',
+'Czechia',
+'Sweden',
+'Norway',
+'Latvia')) 
+# 
+ data_st$country_gr <- factor(data_st$country_gr, levels=c(
+"Ελλάδα",
+"Ρουμανία",
+"Βουλγαρία",
+"Ουγγαρία",
+"Πολωνία",
+"Κροατία",
+"Ιταλία",
+"Λιθουανία",
+"Μάλτα",
+"Κύπρος",
+"Σλοβακία",
+"ΕΕ-27",
+'Πορτογαλία',
+'Λουξεμβούργο',
+'Γερμανία', 
+'Ιρλανδία',
+'Γαλλία',
+'Φιλανδία',
+'Βέλγιο',
+'Σλοβενία',
+'Ολλανδία',
+'ΗΒ',
+'Ισπανία',
+'Εσθονία',
+'Δανία',
+'Αυστρία',
+'Τσεχία',
+'Σουηδία',
+'Νορβηγία',
+'Λετονία'))
+ 
+data_st$Type_gr <- factor(data_st$Type_gr, levels=c("Σύνολο των επιχειρήσεων","Μεγάλες επιχειρήσεις (250+ εργαζόμενοι)"))
+data_st$Type <- factor(data_st$Type, levels=c("All firms","Large firms (250+ employees)"))
+
+str(data_st$Type_gr)
+
+ggplot(data_st, aes(country_gr, percentage, fill = Type_gr, group = Type_gr))+
+    theme_bw()+
+    geom_bar(stat = "identity",position = "dodge")+
+    coord_flip()+
+  # facet_grid(rows = vars(Countries), scales = "free_y", space = "free_y", switch = "y")+
+   facet_wrap(~Type_gr,  scales = "free_y", strip.position = "top", labeller = label_wrap_gen(40))+
+    scale_fill_manual(values = c("#339900","#FF6666"))+
+   theme( 
+      # panel.border = element_blank(),
+        strip.text.x = element_text(size = 12, angle = 0, face = "bold"),
+        axis.text.y = element_text(color = "grey20", size = 10, angle = 0, face = "bold"),
+        axis.text.x = element_text(color = "grey20", size = 10, angle = 0, face = "bold"),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 12),
+        plot.title = element_text(size = 20),
+        # plot.caption = element_text(size = 10, hjust = 0),
+        plot.caption = element_text(size = 11, hjust = 0),
+        axis.title.x = element_text(size = 15, angle = 0),
+        axis.title.y = element_text(size = 15, angle = 90),
+        # plot.caption = element_text(lineheight = 3.0), 
+        legend.position = "none"
+        )+
+    xlab("")+ylab("%")+
+    # guides(fill = guide_legend(reverse = TRUE))+
+    ggtitle("Ποσοστό (%) επιχειρήσεων που δεν παρέχουν επαγγελματική κατάρτιση")+
+    labs(caption="Γράφημα: ΕΛΙΑΜΕΠ, Πηγή Δεδομένων: Eurostat,\nΔεδομένα για όλες τις χώρες αναφέρονται στο 2015")
+
+ggplot(data_st, aes(Countries, percentage, fill = Type, group = Type))+
+    theme_bw()+
+    geom_bar(stat = "identity",position = "dodge")+
+    coord_flip()+
+  # facet_grid(rows = vars(Countries), scales = "free_y", space = "free_y", switch = "y")+
+   facet_wrap(~Type,  scales = "free_y", strip.position = "top", labeller = label_wrap_gen(40))+
+    scale_fill_manual(values = c("#339900","#FF6666"))+
+   theme( 
+      # panel.border = element_blank(),
+        strip.text.x = element_text(size = 13, angle = 0, face = "bold"),
+        axis.text.y = element_text(color = "grey20", size = 10, angle = 0, face = "bold"),
+        axis.text.x = element_text(color = "grey20", size = 10, angle = 0, face = "bold"),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 12),
+        plot.title = element_text(size = 20),
+        # plot.caption = element_text(size = 10, hjust = 0),
+        plot.caption = element_text(size = 11, hjust = 0),
+        axis.title.x = element_text(size = 15, angle = 0),
+        axis.title.y = element_text(size = 15, angle = 90),
+        # plot.caption = element_text(lineheight = 3.0), 
+        legend.position = "none"
+        )+
+    xlab("")+ylab("%")+
+    # guides(fill = guide_legend(reverse = TRUE))+
+    ggtitle("Share (%) of firms not providing vocational training")+
+    labs(caption="Graph: ELIAMEP, Source: Eurostat \nFigures for all countries refer to 2015")
+
+```
+
+
+
+```{r EPENDYSEIS}
+Sys.getlocale()
+Sys.setlocale(category = "LC_ALL", locale = "Greek")
+
+# data_inv = read.csv("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/December/Week 2/ependyseis.csv") %>% 
+#   mutate(year = YEAR) %>%
+#   mutate(value_inv = VALUE_INV) %>%
+#   select(- YEAR, - VALUE_INV) %>%
+#   mutate(year = round(year,0)) %>% 
+#   mutate(value_inv = round(value_inv, 1)) %>% 
+#   filter(!duplicated(year))
+#   
+# plot1 = ggplot(data=data_inv, aes(x=year, y=value_inv, group=1)) +
+#   geom_line(color="red", size = 1.5) +
+#    ggtitle('Ποσοστό (%) επί του ΑΕΠ')+
+#     xlab('Ετος')+ylab("%")+
+#     theme(plot.title = element_text(hjust = 0.5, size=13, face="bold"), 
+#         plot.caption = element_text(hjust = 1), 
+#         axis.text.x=element_text(angle = 0, face="bold"),
+#         axis.text.y = element_text(angle = 0, face="bold"), 
+#         legend.position = "none")
+
+# Insert GDP DEFL FROM WB
+gdp_defl = read.csv("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/December/Week 2/GDP_DEFL.csv") %>% mutate(gdp_defl = GDP_DEFL/100) %>% select(-GDP_DEFL)
+
+data_aposveseis = read.csv("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/December/Week 2/aposveseis.csv") %>% 
+   mutate(Year = round(Year, 0)) %>% 
+   mutate(Aposveseis = round(Aposveseis,1)) %>% 
+  filter(!duplicated(Year))
+
+# Insert Systatika twn Ependysewn & merge them stis katalliles katigories. 
+data_consistency = read.xlsx("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/December/Week 2/consistency.xlsx",1) %>% group_by(Year) %>% mutate("Agricultural, Other products" = sum(Agriculture.foresty.fisheries,Other.products)) %>% mutate("Metal products, Machinery, Transport equipment" = sum(Metal.products.and.machinery,Transport.equipment)) %>% mutate("Housing, Other constructions" = sum(Housing,Other.constructions)) %>% 
+  mutate("Δ Inventories" = Changes.in.inventories) %>% select(Year,"Agricultural, Other products",  "Metal products, Machinery, Transport equipment", "Housing, Other constructions","Δ Inventories", Total)
+
+data_consistency = left_join(data_consistency, data_aposveseis, by = "Year")
+
+nm1 = c("Agricultural, Other products","Metal products, Machinery, Transport equipment", 
+                   "Housing, Other constructions", "Δ Inventories", 
+                   "Total", "Aposveseis")
+
+data_consistency = left_join(data_consistency, gdp_defl, by = "Year") %>% ungroup() %>% 
+  mutate(across(all_of(nm1), ~ .* gdp_defl, .names="{.col}_defl")) %>% 
+  select(Year, contains("_defl"), -gdp_defl)
+plot1 = ggplot(data_consistency) + 
+        geom_line(aes(x=Year, y=Aposveseis_defl))+
+        geom_line(aes(x=Year, y=Total_defl))
+
+data_consistency_long = data_consistency %>% pivot_longer(cols = -c(Year,Total_defl, Aposveseis_defl) , names_to = 'components', values_to = "values") %>% select(- Total_defl, - Aposveseis_defl)
+data_all = left_join(data_consistency_long, data_consistency, by = "Year")
+x_axis_labels <- min(data_all[,"Year"]):max(data_all[,"Year"])
+
+ggplot(data_all, aes(fill=components, y=values, x=Year)) + 
+  theme_solarized() + 
+  geom_bar(aes(fill=components, y=values, x=Year),stat="identity")+
+  geom_line(aes(x=Year, y=Total_defl,group = 1, linetype = ""), color = 'blue', size = 1.3)+
+  geom_line(aes(x=Year, y=Aposveseis_defl, group = 2, linetype = " "), color = 'blue', size = 1.3)+
+  ggtitle('Investment in Greece, 1995-2020')+
+  xlab('Year')+ylab("mil. euros")+
+  theme(plot.title = element_text(hjust = 0.5, size=22, face="bold"),
+  legend.key.size = unit(2, 'cm'),
+    plot.caption = element_text(hjust = 0, size = 17),
+  axis.text.x=element_text(angle = 45, face="bold", size = 17),
+  axis.text.y = element_text(angle = 0, face="bold", size = 17),
+  # legend.position = "top",
+  legend.title = element_blank(),
+  legend.text = element_text(face="bold", size = 14),
+  axis.title=element_text(size=17,face="bold"))+
+  scale_linetype_manual(values = c(1, 3),
+                        labels = c("Investment", "Depreciation"))+
+  scale_x_continuous(labels = x_axis_labels, breaks = x_axis_labels)+
+  scale_fill_discrete(labels = c("Agricultural, Other products", "Housing, Other construction", "Metal products, Machinery, Transport equipment", "Change in Inventories"))+
+  labs(caption="Graph: ELIAMEP, Source: Elstat \nData have been expressed in 2015 constant prices")
+  
+
+ggplot(data_all, aes(fill=components, y=values, x=Year)) + 
+  geom_bar(aes(fill=components, y=values, x=Year),stat="identity")+
+  geom_line(aes(x=Year, y=Total_defl,group = 1, linetype = ""), color = 'blue', size = 1.3)+
+  geom_line(aes(x=Year, y=Aposveseis_defl, group = 2, linetype = " "), color = 'blue', size = 1.3)+
+  ggtitle('Επενδύσεις στην Ελλάδα, 1995-2020')+
+  xlab('Ετος')+ylab("εκ. ευρώ")+
+  coord_fixed()+
+  theme(plot.title = element_text(hjust = 0.5, size=22, face="bold"),
+        aspect.ratio=4/6,
+  legend.key.size = unit(2, 'cm'),
+    plot.caption = element_text(hjust = 0, size = 20),
+  axis.text.x=element_text(angle = 45, face="bold", size = 20),
+  axis.text.y = element_text(angle = 0, face="bold", size = 20),
+  # legend.position = "top",
+  legend.title = element_blank(),
+  legend.text = element_text(face="bold", size = 17),
+  axis.title=element_text(size=20,face="bold"))+
+  scale_linetype_manual(values = c(1, 3),
+                        labels = c("Επενδύσεις", "Αποσβέσεις"))+
+  scale_x_continuous(labels = x_axis_labels, breaks = x_axis_labels)  +
+  scale_fill_discrete(labels = c("Αγροτικά και άλλα προϊόντα", "Κατοικίες και άλλες κατασκευές", "Μεταλλικά προϊόντα, μηχανήματα \nκαι εξοπλισμός μεταφορών", "Μεταβολή αποθεμάτων"))+
+ labs(caption="Γράφημα: EΛΙΑΜΕΠ, Πηγή:ΕλΣτατ \nΤα δεδομένα έχουν εκφραστεί σε σταθερές τιμές του 2015")
+
+ggsave("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/December/Week 2/correct_ratio_eng.png")
+
+
+# Insert total investments kai aposveseis
+# 
+# data_totalinvestment = read.csv("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/December/Week 2/ependyseis_teliko.csv") %>% 
+#    mutate(Year = round(Year, 0)) %>% 
+#    mutate(Inv_value = round(Inv_value,1)) %>% 
+#   filter(!duplicated(Year))
+
+
+
+
+
+data_all_final = left_join(data_totalinvestment, data_aposveseis, by = 'Year')
+data_all_final = left_join(data_all_final, gdp_defl, by = 'Year')
+  
+data_all_final = data_all_final %>% mutate(inv_value_cp = Inv_value * gdp_defl) %>% 
+  mutate(aposveseis_cp = Aposveseis * gdp_defl) %>%  select(Year, inv_value_cp, aposveseis_cp) %>% 
+  pivot_longer(cols = !Year, names_to = 'components', values_to = "values")
+  
+data_all_final_gr = data_all_final %>% 
+  mutate(components = case_when(components == "aposveseis_cp" ~ 'Αποσβέσεις', 
+                                TRUE ~ "Επενδύσεις"))
+
+data_all_final_eng = data_all_final %>% 
+  mutate(components = case_when(components == "aposveseis_cp" ~ 'Depreciation', 
+                                TRUE ~ "Investment"))
+
+
+
+
+
+
+
+
+
+plot2_eng = ggplot(data_consistency_long, aes(fill=components, y=values, x=Year)) + 
+    geom_bar(stat="identity")+
+    ggtitle('Break down (%) of investement')+
+    xlab('Year')+ylab("% of total investment")+
+    theme(plot.title = element_text(hjust = 0.5, size=13, face="bold"), 
+        plot.caption = element_text(hjust = 1), 
+        axis.text.x=element_text(angle = 0, face="bold"),
+        axis.text.y = element_text(angle = 0, face="bold"), 
+        legend.position = "top", 
+        legend.title = element_blank(), 
+        legend.text = element_text(face="bold", size = 10))
+    # scale_fill_discrete(labels = c("A", "B", "C"))
+
+
+plot2_gr = ggplot(data_consistency_long, aes(fill=components, y=values, x=Year)) + 
+    geom_bar(position="fill", stat="identity")+
+    ggtitle('Σύσταση (%) εγχώριων επενδύσεων')+
+    xlab('Ετος')+ylab("% επί των συνολικών επενδύσεων")+
+    theme(plot.title = element_text(hjust = 0.5, size=13, face="bold"), 
+        plot.caption = element_text(hjust = 1), 
+        axis.text.x=element_text(angle = 0, face="bold"),
+        axis.text.y = element_text(angle = 0, face="bold"), 
+        legend.position = "top", 
+        legend.title = element_blank(), 
+        legend.text = element_text(face="bold", size = 10))+
+    scale_fill_discrete(labels = c("Αγροτικά και άλλα προϊόντα", "Κατοικίες και άλλες κατασκευές", "Μεταλλικά προϊόντα, μηχανήματα και εξοπλισμός μεταφορών"))
+
+
+grid.arrange(plot1, plot2, ncol=1)
+
+
+
+
+
+
+
+plot1_gr = ggplot(data=data_all_final_gr, aes(x=Year, y=values, fill = components, color = components)) +
+  geom_line(size = 1.5)+
+   ggtitle('Επενδύσεις & Αποσβέσεις σε εκ. ευρώ')+
+    xlab('Ετος')+ylab("εκ. ευρώ")+
+    theme(plot.title = element_text(hjust = 0.5, size=13, face="bold"), 
+        plot.caption = element_text(hjust = 1), 
+        axis.text.x=element_text(angle = 0, face="bold"),
+        axis.text.y = element_text(angle = 0, face="bold"),
+        legend.position = "top",
+        legend.title = element_blank(), 
+        legend.text = element_text(face="bold", size = 10))+
+        labs(caption="σε σταθερές τιμές 2015")
+
+
+plot1_eng = ggplot(data=data_all_final_eng, aes(x=Year, y=values, fill = components, color = components)) +
+  geom_line(size = 1.5)+
+   ggtitle('Investment & Depreciation in mil. euros')+
+    xlab('Year')+ylab("mil. euros")+
+    theme(plot.title = element_text(hjust = 0.5, size=13, face="bold"), 
+        plot.caption = element_text(hjust = 1), 
+        axis.text.x=element_text(angle = 0, face="bold"),
+        axis.text.y = element_text(angle = 0, face="bold"),
+        legend.position = "top",
+        legend.title = element_blank(), 
+        legend.text = element_text(face="bold", size = 10))+
+      labs(caption="in 2015 constant Prices")
+
+grid.arrange(plot1_gr, plot2_gr, ncol=1)
+
+
+
+```
+
+
+
+```{r Inequality}
+Sys.getlocale()
+Sys.setlocale(category = "LC_ALL", locale = "Greek")
+
+
+
+data_ineq = read.xlsx("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/December/Week 3/Copy of ineq.xlsx", 1) %>% 
+  mutate(X2007 = as.numeric(X2007)) %>% 
+  mutate(X2019 = as.numeric(X2019)) %>% 
+  mutate(increase = case_when(X2019>=X2007 ~ "Αύξηση ανισοτήτων 2007-2019", 
+                              TRUE ~ "Μείωση ανισοτήτων 2007-2019")) %>% 
+  mutate(increase_eng = case_when(X2019>=X2007 ~ "Increased inequality 2007-2019", 
+                              TRUE ~ "Decreased inequality 2007-2019")) %>% 
+  mutate(increase_eng = case_when(Countries == "EU-27" | Countries == "US"~ "EU-27 & US", 
+                              TRUE ~ increase_eng)) %>% 
+  mutate(increase = case_when(Countries == "EU-27"| Countries == "US"~ "EE-27 & ΗΠΑ",
+                              TRUE ~ increase))
+
+
+data_ineq_2 = pivot_longer(data_ineq, "X2007":"X2019", names_to = "year", values_to = "gini") %>%  
+mutate(country_gr = case_when(
+Countries == "Greece"~"Ελλάδα",
+Countries == "Romania" ~ "Ρουμανία",
+Countries == "Hungary"~ "Ουγγαρία",
+Countries == "Bulgaria"~ "Βουλγαρία",
+Countries == "Croatia"~ "Κροατία",
+Countries == "Malta"~ "Μάλτα",
+Countries == "Slovakia" ~ "Σλοβακία",
+Countries == "Lithuania"~ "Λιθουανία",
+Countries == "Latvia"~ "Λετονία",
+Countries == "France"~ "Γαλλία",
+Countries == "Czechia"~ "Τσεχία",
+Countries == 'Sweden'~ "Σουηδία",
+Countries == "Finland"~ "Φιλανδία",
+Countries == "Spain"~ "Ισπανία",
+Countries == "Ireland"~"Ιρλανδία",
+Countries == "Slovenia"~ "Σλοβενία",
+Countries == "Portugal"~ "Πορτογαλία",
+Countries == "Poland"~ "Πολωνία",
+Countries == 'Belgium'~ "Βέλγιο",
+Countries == 'Germany'~ "Γερμανία",
+Countries == "Estonia"~ "Εσθονία",
+Countries == "Luxembourg"~ "Λουξεμβούργο",
+Countries == 'Netherlands'~ "Ολλανδία",
+Countries == 'Denmark'~ "Δανία",
+Countries == 'Italy'~ "Ιταλία",
+Countries == 'Cyprus'~ "Κύπρος",
+Countries == 'Austria'~ "Αυστρία",
+Countries == "EU-27"~"EE-27",
+Countries == "US"~"ΗΠΑ",
+TRUE ~ "NA"))
+
+data_ineq_2$Countries <- factor(data_ineq_2$Countries, levels=c(
+'Slovakia',
+'Slovenia',
+'Czechia',
+'Belgium',
+'Finland',
+'Netherlands',
+'Denmark',
+'Austria',
+'Sweden',
+'Hungary',
+'Malta',
+'Ireland',
+'Poland',
+'France',
+'Croatia',
+'EU-27',
+'US',
+'Germany',
+'Estonia',
+'Greece',
+'Cyprus',
+'Portugal',
+'Luxembourg',
+'Italy',
+'Spain',
+'Romania',
+'Latvia',
+'Lithuania',
+'Bulgaria')) 
+
+data_ineq_2$country_gr <- factor(data_ineq_2$country_gr, levels=c(
+'Σλοβακία',
+'Σλοβενία',
+'Τσεχία',
+'Βέλγιο',
+'Φιλανδία',
+'Ολλανδία',
+'Δανία',
+'Αυστρία',
+'Σουηδία',
+'Ουγγαρία',
+'Μάλτα',
+'Ιρλανδία',
+'Πολωνία',
+'Γαλλία',
+'Κροατία',
+'EE-27',
+'ΗΠΑ',
+'Γερμανία',
+'Εσθονία',
+'Ελλάδα',
+'Κύπρος',
+'Πορτογαλία',
+'Λουξεμβούργο',
+'Ιταλία',
+'Ισπανία',
+'Ρουμανία',
+'Λετονία',
+'Λιθουανία',
+'Βουλγαρία')) 
+
+data_ineq_2$increase <- factor(data_ineq_2$increase, levels=c(
+"Αύξηση ανισοτήτων 2007-2019", 
+"Μείωση ανισοτήτων 2007-2019",
+"EE-27 & ΗΠΑ"))
+
+data_ineq_2$increase_eng <- factor(data_ineq_2$increase_eng, levels=c(
+"Increased inequality 2007-2019", 
+"Decreased inequality 2007-2019",
+"EU-27 & US"))
+
+plot_gini_gr = ggplot(data_ineq_2, aes(country_gr, gini, fill = year, group = year))+
+    theme_bw()+
+    geom_bar(stat = "identity",position = "dodge", width = 0.8)+
+    coord_flip()+
+  # facet_grid(rows = vars(Countries), scales = "free_y", space = "free_y", switch = "y")+
+    facet_wrap(~increase, nrow = 3, ncol = 1, scales = "free_y", strip.position = "top", labeller = label_wrap_gen(30))+
+    scale_fill_manual(values = c("#FF6666", "#339900"))+
+   theme( 
+      # panel.border = element_blank(),
+        strip.text.x = element_text(size = 12, angle = 0, face = "bold"),
+        axis.text.y = element_text(color = "grey20", size = 10.5, angle = 0, face = "bold"),
+        axis.text.x = element_text(color = "grey20", size = 10.5, angle = 0, face = "bold"),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 13),
+        plot.title = element_text(size = 14, face = 'bold'),
+        # plot.caption = element_text(size = 10, hjust = 0),
+        plot.caption = element_text(size = 8.5, hjust = 0),
+        axis.title.x = element_text(size = 11, angle = 0),
+        axis.title.y = element_text(size = 11, angle = 0),
+        # plot.caption = element_text(lineheight = 3.0), 
+        legend.position = "top"
+        )+
+    xlab("")+ylab("Δείκτης ανισότητας")+
+    # guides(fill = guide_legend(reverse = TRUE))+
+    ggtitle("Δείκτης ανισότητας (Gini)")+
+    labs(caption="Γράφημα: ΕΛΙΑΜΕΠ, Πηγή Δεδομένων: Eurostat, US-Census Bureau. \nΣτοιχεία για την Κροατία το έτος 2007 δεν είναι διαθέσιμα")+
+   scale_fill_discrete(labels = c("2007", "2019"))
+
+plot_gini_eng = ggplot(data_ineq_2, aes(Countries, gini, fill = year, group = year))+
+    theme_bw()+
+    geom_bar(stat = "identity",position = "dodge", width = 0.8)+
+    coord_flip()+
+  # facet_grid(rows = vars(Countries), scales = "free_y", space = "free_y", switch = "y")+
+    facet_wrap(~increase_eng, nrow = 3, ncol = 1, scales = 'free_y', strip.position = "top", labeller = label_wrap_gen(30))+
+    scale_fill_manual(values = c("#FF6666", "#339900"))+
+   theme( 
+      # panel.border = element_blank(),
+        strip.text.x = element_text(size = 12, angle = 0, face = "bold"),
+        axis.text.y = element_text(color = "grey20", size = 10.5, angle = 0, face = "bold"),
+        axis.text.x = element_text(color = "grey20", size = 10.5, angle = 0, face = "bold"),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 13),
+        plot.title = element_text(size = 14, face = 'bold'),
+        # plot.caption = element_text(size = 10, hjust = 0),
+        plot.caption = element_text(size = 8.5, hjust = 0),
+        axis.title.x = element_text(size = 11, angle = 0),
+        axis.title.y = element_text(size = 11, angle = 0),
+        # plot.caption = element_text(lineheight = 3.0), 
+        legend.position = "top"
+        )+
+    xlab("")+ylab("Gini coefficient")+
+    # guides(fill = guide_legend(reverse = TRUE))+
+    ggtitle("Gini coefficient")+
+    labs(caption="Graph: ELIAMEP, Source: Eurostat, US-Census Bureau. \nData for Croatia in 2007 are not available")+
+   scale_fill_discrete(labels = c("2007", "2019"))
+
+
+data_s80_s20 = read.xlsx("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/December/Week 3/Copy of ineq.xlsx", 2) %>% 
+  mutate(X2007 = as.numeric(X2007)) %>% 
+  mutate(X2019 = as.numeric(X2019)) %>% 
+  mutate(increase = case_when(X2019>=X2007 ~ "Αύξηση λόγου εισοδήματος 2007-2019", 
+                              TRUE ~ "Μείωση λόγου εισοδήματος 2007-2019")) %>% 
+  mutate(increase_eng = case_when(X2019>=X2007 ~ "Increased ratio 2007-2019", 
+                              TRUE ~ "Decreased ratio 2007-2019")) %>% 
+  mutate(increase_eng = case_when(Countries == "EU-27" | Countries == "US" ~ "EU-27 & US", 
+                              TRUE ~ increase_eng)) %>% 
+  mutate(increase = case_when(Countries == "EU-27"| Countries == "US" ~ "EE-27 & ΗΠΑ",
+                              TRUE ~ increase))
+
+data_s80_s20_2 = pivot_longer(data_s80_s20, "X2007":"X2019", names_to = "year", values_to = "ratio") %>%  
+mutate(country_gr = case_when(
+Countries == "Greece"~"Ελλάδα",
+Countries == "Romania" ~ "Ρουμανία",
+Countries == "Hungary"~ "Ουγγαρία",
+Countries == "Bulgaria"~ "Βουλγαρία",
+Countries == "Croatia"~ "Κροατία",
+Countries == "Malta"~ "Μάλτα",
+Countries == "Slovakia" ~ "Σλοβακία",
+Countries == "Lithuania"~ "Λιθουανία",
+Countries == "Latvia"~ "Λετονία",
+Countries == "France"~ "Γαλλία",
+Countries == "Czechia"~ "Τσεχία",
+Countries == 'Sweden'~ "Σουηδία",
+Countries == "Finland"~ "Φιλανδία",
+Countries == "Spain"~ "Ισπανία",
+Countries == "Ireland"~"Ιρλανδία",
+Countries == "Slovenia"~ "Σλοβενία",
+Countries == "Portugal"~ "Πορτογαλία",
+Countries == "Poland"~ "Πολωνία",
+Countries == 'Belgium'~ "Βέλγιο",
+Countries == 'Germany'~ "Γερμανία",
+Countries == "Estonia"~ "Εσθονία",
+Countries == "Luxembourg"~ "Λουξεμβούργο",
+Countries == 'Netherlands'~ "Ολλανδία",
+Countries == 'Denmark'~ "Δανία",
+Countries == 'Italy'~ "Ιταλία",
+Countries == 'Cyprus'~ "Κύπρος",
+Countries == 'Austria'~ "Αυστρία",
+Countries == "EU-27" ~ 'EE-27',
+Countries == "US" ~ "ΗΠΑ",
+TRUE ~ "NA"))
+
+data_s80_s20_2$Countries <- factor(data_s80_s20_2$Countries, levels=c(
+'Slovakia',
+'Slovenia',
+'Czechia',
+'Belgium',
+'Finland',
+'Netherlands',
+'Denmark',
+'Austria',
+'Sweden',
+'Hungary',
+'Malta',
+'Ireland',
+'Poland',
+'France',
+'Croatia',
+'Germany',
+'EU-27',
+'US',
+'Estonia',
+'Greece',
+'Cyprus',
+'Portugal',
+'Luxembourg',
+'Italy',
+'Spain',
+'Romania',
+'Latvia',
+'Lithuania',
+'Bulgaria')) 
+
+data_s80_s20_2$country_gr <- factor(data_s80_s20_2$country_gr, levels=c(
+'Σλοβακία',
+'Σλοβενία',
+'Τσεχία',
+'Βέλγιο',
+'Φιλανδία',
+'Ολλανδία',
+'Δανία',
+'Αυστρία',
+'Σουηδία',
+'Ουγγαρία',
+'Μάλτα',
+'Ιρλανδία',
+'Πολωνία',
+'Γαλλία',
+'Κροατία',
+'Γερμανία',
+'EE-27',
+'ΗΠΑ',
+'Εσθονία',
+'Ελλάδα',
+'Κύπρος',
+'Πορτογαλία',
+'Λουξεμβούργο',
+'Ιταλία',
+'Ισπανία',
+'Ρουμανία',
+'Λετονία',
+'Λιθουανία',
+'Βουλγαρία')) 
+
+data_s80_s20_2$increase <- factor(data_s80_s20_2$increase, levels=c(
+"Αύξηση λόγου εισοδήματος 2007-2019", 
+"Μείωση λόγου εισοδήματος 2007-2019",
+"EE-27 & ΗΠΑ"))
+
+data_s80_s20_2$increase_eng <- factor(data_s80_s20_2$increase_eng, levels=c(
+"Increased ratio 2007-2019",
+"Decreased ratio 2007-2019",
+"EU-27 & US"))
+
+plot_ratio_gr = ggplot(data_s80_s20_2, aes(country_gr, ratio, fill = year, group = year))+
+    theme_bw()+
+    geom_bar(stat = "identity",position = "dodge", width = 0.8)+
+    coord_flip()+
+  # facet_grid(rows = vars(Countries), scales = "free_y", space = "free_y", switch = "y")+
+    facet_wrap(~increase, nrow = 3, ncol = 1, scales = 'free_y', strip.position = "top", labeller = label_wrap_gen(30))+
+    scale_fill_manual(values = c("#FF6666", "#339900"))+
+   theme( 
+      # panel.border = element_blank(),
+        strip.text.x = element_text(size = 12, angle = 0, face = "bold"),
+        axis.text.y = element_text(color = "grey20", size = 10.5, angle = 0, face = "bold"),
+        axis.text.x = element_text(color = "grey20", size = 10.5, angle = 0, face = "bold"),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 13),
+        plot.title = element_text(size = 14, face = 'bold'),
+        # plot.caption = element_text(size = 10, hjust = 0),
+        plot.caption = element_text(size = 9, hjust = 0),
+        axis.title.x = element_text(size = 11, angle = 0),
+        axis.title.y = element_text(size = 11, angle = 0),
+        # plot.caption = element_text(lineheight = 3.0), 
+        legend.position = "top"
+        )+
+    xlab("")+ylab("Λόγος εισοδήματος πλουσιότερου 20% \nδια φτωχότερου 20%")+
+    # guides(fill = guide_legend(reverse = TRUE))+
+    ggtitle("Λόγος εισοδήματος πλουσιότερου 20% \nδια φτωχότερου 20%")+
+    labs(caption="\n")+
+   scale_fill_discrete(labels = c("2007", "2019"))
+
+plot_ratio_eng = ggplot(data_s80_s20_2, aes(Countries, ratio, fill = year, group = year))+
+    theme_bw()+
+    geom_bar(stat = "identity",position = "dodge", width = 0.8)+
+    coord_flip()+
+  # facet_grid(rows = vars(Countries), scales = "free_y", space = "free_y", switch = "y")+
+    facet_wrap(~increase_eng, nrow = 3, ncol = 1, scales = 'free_y', strip.position = "top", labeller = label_wrap_gen(30))+
+    scale_fill_manual(values = c("#FF6666", "#339900"))+
+   theme( 
+      # panel.border = element_blank(),
+        strip.text.x = element_text(size = 12, angle = 0, face = "bold"),
+        axis.text.y = element_text(color = "grey20", size = 11, angle = 0, face = "bold"),
+        axis.text.x = element_text(color = "grey20", size = 11, angle = 0, face = "bold"),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 13),
+        plot.title = element_text(size = 14, face = 'bold'),
+        # plot.caption = element_text(size = 10, hjust = 0),
+        plot.caption = element_text(size = 10, hjust = 0),
+        axis.title.x = element_text(size = 11, angle = 0),
+        axis.title.y = element_text(size = 11, angle = 0),
+        # plot.caption = element_text(lineheight = 3.0), 
+        legend.position = "top"
+        )+
+    xlab("")+ylab("Income ratio: richest 20%/poorest 20%")+
+    # guides(fill = guide_legend(reverse = TRUE))+
+    ggtitle("Income ratio: richest 20%/poorest 20%")+
+    labs(caption="")+
+   scale_fill_discrete(labels = c("2007", "2019"))
+
+# read_pptx("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/December/Week 3/Copy of Γραφήματα in focus 10_12_21.pptx")
+
+
+plot_gr = grid.arrange(plot_gini_gr, plot_ratio_gr, ncol=2)
+ggsave("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/December/Week 3/plot_gr_updated.png",plot_gr,  width = 27.09, height = 20.32, units = 'cm', dpi = 300)
+
+plot_eng = grid.arrange(plot_gini_eng, plot_ratio_eng, ncol=2)
+ggsave("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/December/Week 3/plot_eng_updated.png",plot_eng,  width = 27.09, height = 20.32, units = 'cm', dpi = 300)
+```
+
+
+```{r unmet needs}
+
+Sys.getlocale()
+Sys.setlocale(category = "LC_ALL", locale = "Greek")
+
+
+
+data_unmetq1 = read.xlsx("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/December/Week 4/Copy of In focus unmet need.xlsx", 1) %>% 
+  mutate(X2008 = as.numeric(X2008)) %>% 
+  mutate(X2019 = as.numeric(X2019)) %>% 
+  mutate(increase = case_when(X2019>=X2008 ~ "Αύξηση 2008-2019", 
+                              TRUE ~ "Μείωση 2008-2019")) %>% 
+  mutate(increase_eng = case_when(X2019>=X2008 ~ "Increase 2008-2019", 
+                              TRUE ~ "Decrease 2008-2019")) 
+
+data_unmetq1_2 = pivot_longer(data_unmetq1, "X2008":"X2019", names_to = "year", values_to = "share") %>%
+mutate(country_gr = case_when(
+Countries == "Greece"~"Ελλάδα",
+Countries == "Romania" ~ "Ρουμανία",
+Countries == "Hungary"~ "Ουγγαρία",
+Countries == "Bulgaria"~ "Βουλγαρία",
+Countries == "Croatia"~ "Κροατία",
+Countries == "Malta"~ "Μάλτα",
+Countries == "Slovakia" ~ "Σλοβακία",
+Countries == "Lithuania"~ "Λιθουανία",
+Countries == "Latvia"~ "Λετονία",
+Countries == "France"~ "Γαλλία",
+Countries == "Czechia"~ "Τσεχία",
+Countries == 'Sweden'~ "Σουηδία",
+Countries == "Finland"~ "Φινλανδία",
+Countries == "Spain"~ "Ισπανία",
+Countries == "Ireland"~"Ιρλανδία",
+Countries == "Slovenia"~ "Σλοβενία",
+Countries == "Portugal"~ "Πορτογαλία",
+Countries == "Poland"~ "Πολωνία",
+Countries == 'Belgium'~ "Βέλγιο",
+Countries == 'Germany'~ "Γερμανία",
+Countries == "Estonia"~ "Εσθονία",
+Countries == "Luxembourg"~ "Λουξεμβούργο",
+Countries == 'Netherlands'~ "Ολλανδία",
+Countries == 'Denmark'~ "Δανία",
+Countries == 'Italy'~ "Ιταλία",
+Countries == 'Cyprus'~ "Κύπρος",
+Countries == 'Austria'~ "Αυστρία",
+Countries == "EU-27"~"EE-27",
+Countries == "US"~"ΗΠΑ",
+TRUE ~ "NA"))
+
+data_unmetq1_2$Countries = factor(data_unmetq1_2$Countries, levels = c(
+ 'Sweden' ,
+  'Spain',
+  'Slovenia',
+  'Malta',
+  'Finland',
+  'Netherlands',
+  'Czechia',
+  'Lithuania',
+  'Germany',
+  'Austria',
+  'Estonia', 
+  'Denmark',
+  'Hungary',
+  'Luxembourg',
+  'Croatia',
+  'Ireland',
+  'Slovakia',
+  'Cyprus',
+  'France',
+  'Poland',
+  'Portugal',
+  'Italy',
+  'Bulgaria',
+  'Belgium',
+  'Latvia',
+  'Romania',
+  'Greece'
+))
+
+
+data_unmetq1_2$country_gr = factor(data_unmetq1_2$country_gr, levels = c(
+  'Σουηδία' ,
+  'Ισπανία',
+  'Σλοβενία',
+  'Μάλτα',
+  'Φινλανδία',
+  'Ολλανδία',
+  'Τσεχία',
+  'Λιθουανία',
+  'Γερμανία',
+  'Αυστρία',
+  'Εσθονία', 
+  'Δανία',
+  'Ουγγαρία',
+  'Λουξεμβούργο',
+  'Κροατία',
+  'Ιρλανδία',
+  'Σλοβακία',
+  'Κύπρος',
+  'Γαλλία',
+  'Πολωνία',
+  'Πορτογαλία',
+  'Ιταλία',
+  'Βουλγαρία',
+  'Βέλγιο',
+  'Λετονία',
+  'Ρουμανία',
+  'Ελλάδα'
+))
+
+
+data_unmetq1_2$increase <- factor(data_unmetq1_2$increase, levels=c(
+"Αύξηση 2008-2019", 
+"Μείωση 2008-2019"))
+
+data_unmetq1_2$increase_eng <- factor(data_unmetq1_2$increase_eng, levels=c(
+"Increase 2008-2019", 
+"Decrease 2008-2019"))
+
+
+plot_unmet_gr = ggplot(data_unmetq1_2, aes(country_gr, share, fill = year, group = year))+
+    theme_bw()+
+    geom_bar(stat = "identity",position = "dodge", width = 0.8)+
+    coord_flip()+
+  # facet_grid(rows = vars(Countries), scales = "free_y", space = "free_y", switch = "y")+
+    facet_wrap(~increase, nrow = 3, ncol = 1,scales = 'free', strip.position = "top", labeller = label_wrap_gen(30))+
+scale_fill_manual(labels = c("2008", "2019"), values = c("red", "blue"))+
+  scale_y_continuous(limits = c(0, 28))+
+   theme( 
+      # panel.border = element_blank(),
+        strip.text.x = element_text(size = 12, angle = 0, face = "bold"),
+        axis.text.y = element_text(color = "grey20", size = 10.5, angle = 0, face = "bold"),
+        axis.text.x = element_text(color = "grey20", size = 10.5, angle = 0, face = "bold"),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 13),
+        plot.title = element_text(size = 11, face = 'bold'),
+        # plot.caption = element_text(size = 10, hjust = 0),
+        plot.caption = element_text(size = 8.5, hjust = 0),
+        axis.title.x = element_text(size = 11, angle = 0),
+        axis.title.y = element_text(size = 11, angle = 0),
+        # plot.caption = element_text(lineheight = 3.0), 
+        legend.position = "top"
+        )+
+    xlab("")+ylab("Ποσοστό")+
+    # guides(fill = guide_legend(reverse = TRUE))+
+    ggtitle("Ποσοστό του φτωχότερου 20% του πληθυσμού \nχωρίς πρόσβαση σε απαραίτητη περίθαλψη \nλόγω κόστους")+
+    labs(caption="Γράφημα: ΕΛΙΑΜΕΠ, Πηγή Δεδομένων: Eurostat. \nΣτοιχεία για την Κροατία το έτος 2007 δεν είναι διαθέσιμα")
+   # scale_fill_discrete(labels = c("2008", "2019"))
+
+
+plot_unmet_eng = ggplot(data_unmetq1_2, aes(Countries, share, fill = year, group = year))+
+    theme_bw()+
+    geom_bar(stat = "identity",position = "dodge", width = 0.8)+
+    coord_flip()+
+  # facet_grid(rows = vars(Countries), scales = "free_y", space = "free_y", switch = "y")+
+    facet_wrap(~increase_eng, nrow = 3, ncol = 1, scales = "free_y", strip.position = "top", labeller = label_wrap_gen(30))+
+    scale_y_continuous(limits = c(0, 28))+
+scale_fill_manual(labels = c("2008", "2019"), values = c("red", "blue"))+
+   theme( 
+      # panel.border = element_blank(),
+        strip.text.x = element_text(size = 12, angle = 0, face = "bold"),
+        axis.text.y = element_text(color = "grey20", size = 10.5, angle = 0, face = "bold"),
+        axis.text.x = element_text(color = "grey20", size = 10.5, angle = 0, face = "bold"),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 13),
+        plot.title = element_text(size = 11, face = 'bold'),
+        # plot.caption = element_text(size = 10, hjust = 0),
+        plot.caption = element_text(size = 8.5, hjust = 0),
+        axis.title.x = element_text(size = 11, angle = 0),
+        axis.title.y = element_text(size = 11, angle = 0),
+        # plot.caption = element_text(lineheight = 3.0), 
+        legend.position = "top"
+        )+
+    xlab("")+ylab("Share")+
+    # guides(fill = guide_legend(reverse = TRUE))+
+    ggtitle("Share of poorest 20% of population with no access \nto healthcare due to high cost")+
+    labs(caption="Graph: ELIAMEP, Source: Eurostat. \nData for Croatia in 2007 are not available")
+   # scale_fill_discrete(labels = c("2008", "2019"))
+
+
+
+
+
+data_unmetq5 = read.xlsx("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/December/Week 4/Copy of In focus unmet need.xlsx", 2) %>% 
+  mutate(X2008 = as.numeric(X2008)) %>% 
+  mutate(X2019 = as.numeric(X2019)) %>% 
+  mutate(increase = case_when(X2019>=X2008 ~ "Αύξηση 2008-2019", 
+                              TRUE ~ "Μείωση 2008-2019")) %>% 
+  mutate(increase_eng = case_when(X2019>=X2008 ~ "Increase 2008-2019", 
+                              TRUE ~ "Decrease 2008-2019")) 
+data_unmetq5_2 = pivot_longer(data_unmetq5, "X2008":"X2019", names_to = "year", values_to = "share") %>%
+mutate(country_gr = case_when(
+Countries == "Greece"~"Ελλάδα",
+Countries == "Romania" ~ "Ρουμανία",
+Countries == "Hungary"~ "Ουγγαρία",
+Countries == "Bulgaria"~ "Βουλγαρία",
+Countries == "Croatia"~ "Κροατία",
+Countries == "Malta"~ "Μάλτα",
+Countries == "Slovakia" ~ "Σλοβακία",
+Countries == "Lithuania"~ "Λιθουανία",
+Countries == "Latvia"~ "Λετονία",
+Countries == "France"~ "Γαλλία",
+Countries == "Czechia"~ "Τσεχία",
+Countries == 'Sweden'~ "Σουηδία",
+Countries == "Finland"~ "Φινλανδία",
+Countries == "Spain"~ "Ισπανία",
+Countries == "Ireland"~"Ιρλανδία",
+Countries == "Slovenia"~ "Σλοβενία",
+Countries == "Portugal"~ "Πορτογαλία",
+Countries == "Poland"~ "Πολωνία",
+Countries == 'Belgium'~ "Βέλγιο",
+Countries == 'Germany'~ "Γερμανία",
+Countries == "Estonia"~ "Εσθονία",
+Countries == "Luxembourg"~ "Λουξεμβούργο",
+Countries == 'Netherlands'~ "Ολλανδία",
+Countries == 'Denmark'~ "Δανία",
+Countries == 'Italy'~ "Ιταλία",
+Countries == 'Cyprus'~ "Κύπρος",
+Countries == 'Austria'~ "Αυστρία",
+Countries == "EU-27"~"EE-27",
+Countries == "US"~"ΗΠΑ",
+TRUE ~ "NA"))
+
+data_unmetq5_2$Countries = factor(data_unmetq5_2$Countries, levels = c(
+ 'Sweden' ,
+  'Spain',
+  'Slovenia',
+  'Malta',
+  'Finland',
+  'Netherlands',
+  'Czechia',
+  'Lithuania',
+  'Germany',
+  'Austria',
+  'Estonia', 
+  'Denmark',
+  'Hungary',
+  'Luxembourg',
+  'Croatia',
+  'Ireland',
+  'Slovakia',
+  'Cyprus',
+  'France',
+  'Poland',
+  'Portugal',
+  'Italy',
+  'Bulgaria',
+  'Belgium',
+  'Latvia',
+  'Romania',
+  'Greece'
+))
+
+
+data_unmetq5_2$country_gr = factor(data_unmetq5_2$country_gr, levels = c(
+  'Σουηδία' ,
+  'Ισπανία',
+  'Σλοβενία',
+  'Μάλτα',
+  'Φινλανδία',
+  'Ολλανδία',
+  'Τσεχία',
+  'Λιθουανία',
+  'Γερμανία',
+  'Αυστρία',
+  'Εσθονία', 
+  'Δανία',
+  'Ουγγαρία',
+  'Λουξεμβούργο',
+  'Κροατία',
+  'Ιρλανδία',
+  'Σλοβακία',
+  'Κύπρος',
+  'Γαλλία',
+  'Πολωνία',
+  'Πορτογαλία',
+  'Ιταλία',
+  'Βουλγαρία',
+  'Βέλγιο',
+  'Λετονία',
+  'Ρουμανία',
+  'Ελλάδα'
+))
+
+
+data_unmetq5_2$increase <- factor(data_unmetq5_2$increase, levels=c(
+"Αύξηση 2008-2019", 
+"Μείωση 2008-2019"))
+
+data_unmetq5_2$increase_eng <- factor(data_unmetq5_2$increase_eng, levels=c(
+"Increase 2008-2019", 
+"Decrease 2008-2019"))
+
+
+plot_unmet5_gr = ggplot(data_unmetq5_2, aes(country_gr, share, fill = year, group = year))+
+    theme_bw()+
+    geom_bar(stat = "identity",position = "dodge", width = 0.8)+
+    coord_flip()+
+  # facet_grid(rows = vars(Countries), scales = "free_y", space = "free_y", switch = "y")+
+    facet_wrap(~increase, nrow = 3, ncol = 1, scales = "free", strip.position = "top", labeller = label_wrap_gen(30))+
+    scale_y_continuous(limits = c(0, 5))+
+scale_fill_manual(labels = c("2008", "2019"), values = c("red", "blue"))+
+   theme( 
+      # panel.border = element_blank(),
+        strip.text.x = element_text(size = 12, angle = 0, face = "bold"),
+        axis.text.y = element_text(color = "grey20", size = 10.5, angle = 0, face = "bold"),
+        axis.text.x = element_text(color = "grey20", size = 10.5, angle = 0, face = "bold"),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 13),
+        plot.title = element_text(size = 11, face = 'bold'),
+        # plot.caption = element_text(size = 10, hjust = 0),
+        plot.caption = element_text(size = 8.5, hjust = 0),
+        axis.title.x = element_text(size = 11, angle = 0),
+        axis.title.y = element_text(size = 11, angle = 0),
+        # plot.caption = element_text(lineheight = 3.0), 
+        legend.position = "top"
+        )+
+    xlab("")+ylab("Ποσοστό")+
+    # guides(fill = guide_legend(reverse = TRUE))+
+    ggtitle("Ποσοστό του πλουσιότερου 20% του πληθυσμού \nχωρίς πρόσβαση σε απαραίτητη περίθαλψη \nλόγω κόστους")
+    # labs(caption="Γράφημα: ΕΛΙΑΜΕΠ, Πηγή Δεδομένων: Eurostat. \nΣτοιχεία για την Κροατία το έτος 2007 δεν είναι διαθέσιμα")+
+   # scale_fill_discrete(labels = c("2008", "2019"))
+
+
+plot_unmet5_eng = ggplot(data_unmetq5_2, aes(Countries, share, fill = year, group = year))+
+    theme_bw()+
+    geom_bar(stat = "identity",position = "dodge", width = 0.8)+
+    coord_flip()+
+    scale_y_continuous(limits = c(0, 5))+
+  # facet_grid(rows = vars(Countries), scales = "free_y", space = "free_y", switch = "y")+
+    facet_wrap(~increase_eng, nrow = 3, ncol = 1, scales = "free", strip.position = "top", labeller = label_wrap_gen(30))+
+scale_fill_manual(labels = c("2008", "2019"), values = c("red", "blue"))+
+   theme( 
+      # panel.border = element_blank(),
+        strip.text.x = element_text(size = 12, angle = 0, face = "bold"),
+        axis.text.y = element_text(color = "grey20", size = 10.5, angle = 0, face = "bold"),
+        axis.text.x = element_text(color = "grey20", size = 10.5, angle = 0, face = "bold"),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 13),
+        plot.title = element_text(size = 11, face = 'bold'),
+        # plot.caption = element_text(size = 10, hjust = 0),
+        plot.caption = element_text(size = 8.5, hjust = 0),
+        axis.title.x = element_text(size = 11, angle = 0),
+        axis.title.y = element_text(size = 11, angle = 0),
+        # plot.caption = element_text(lineheight = 3.0), 
+        legend.position = "top"
+        )+
+    xlab("")+ylab("Share")+
+    # guides(fill = guide_legend(reverse = TRUE))+
+    ggtitle("Share of richest 20% of population with no access to \nhealthcare due to high cost")
+    # labs(caption="Γράφημα: ΕΛΙΑΜΕΠ, Πηγή Δεδομένων: Eurostat. \nΣτοιχεία για την Κροατία το έτος 2007 δεν είναι διαθέσιμα")+
+   # scale_fill_discrete(labels = c("2008", "2019"))
+
+
+plot_gr = grid.arrange(plot_unmet_gr, plot_unmet5_gr, ncol=2)
+ggsave("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/December/Week 4/plot_gr_updated.png",plot_gr,  width = 27.09, height = 20.32, units = 'cm', dpi = 300)
+
+plot_eng = grid.arrange(plot_unmet_eng, plot_unmet5_eng, ncol=2)
+ggsave("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/December/Week 4/plot_eng_updated.png",plot_eng,  width = 27.09, height = 20.32, units = 'cm', dpi = 300)
+
+```
+
+
+
+```{r Teleworking}
+Sys.getlocale()
+Sys.setlocale(category = "LC_ALL", locale = "Greek")
+
+str(data_teleworking$Round2)
+data_teleworking = read.xlsx("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/December/Week 5/Eurofound.xlsx", 1) %>% 
+  mutate(Round2 = as.numeric(Round2)) %>% 
+  pivot_longer("Round1":"Round3", names_to = "Round", values_to = "share") %>% 
+  mutate(Question = case_when(Round == "Round1" ~ "Started working from home as a result of the situation (April-May 2020)", 
+                              Round == "Round2" ~ "Working from home (June-July 2020)", 
+                              Round == "Round3" ~ "Working from home (February-March 2021)", 
+                              TRUE ~ "NA")) %>% 
+  mutate(Question_gr = case_when(Round == "Round1" ~ "Ξεκίνησα να δουλεύω από το σπίτι λόγω της κατάστασης (Απρίλιος-Μάιος 2020)", 
+                                 Round == "Round2" ~ "Δουλεύω από το σπίτι (Ιούνιος-Ιούλιος 2020)", 
+                                 Round == "Round3" ~ "Δουλεύω από το σπίτι (Φεβρουάριος-Μάρτιος 2021)", 
+                                 TRUE ~ "NA")) %>% 
+  # factor(Question_gr, levels=c("Ξεκίνησα να δουλεύω από το σπίτι λόγω της κατάστασης (2020 Φεβ/Απρ)", 
+  #                              "Δουλεύω από το σπίτι (2020 Ιουν/Ιούλ)", 
+  #                              "Δουλεύω από το σπίτι (2021 Φεβ/Μαρ)")) %>% 
+  mutate(Country_gr = case_when(
+Country == "Greece"~"Ελλάδα",
+Country == "Romania" ~ "Ρουμανία",
+Country == "Hungary"~ "Ουγγαρία",
+Country == "Bulgaria"~ "Βουλγαρία",
+Country == "Croatia"~ "Κροατία",
+Country == "Malta"~ "Μάλτα",
+Country == "Slovakia" ~ "Σλοβακία",
+Country == "Lithuania"~ "Λιθουανία",
+Country == "Latvia"~ "Λετονία",
+Country == "France"~ "Γαλλία",
+Country == "Czechia"~ "Τσεχία",
+Country == 'Sweden'~ "Σουηδία",
+Country == "Finland"~ "Φινλανδία",
+Country == "Spain"~ "Ισπανία",
+Country == "Ireland"~"Ιρλανδία",
+Country == "Slovenia"~ "Σλοβενία",
+Country == "Portugal"~ "Πορτογαλία",
+Country == "Poland"~ "Πολωνία",
+Country == 'Belgium'~ "Βέλγιο",
+Country == 'Germany'~ "Γερμανία",
+Country == "Estonia"~ "Εσθονία",
+Country == "Luxembourg"~ "Λουξεμβούργο",
+Country == 'Netherlands'~ "Ολλανδία",
+Country == 'Denmark'~ "Δανία",
+Country == 'Italy'~ "Ιταλία",
+Country == 'Cyprus'~ "Κύπρος",
+Country == 'Austria'~ "Αυστρία",
+Country == "EU-27"~"EE-27",
+TRUE ~ "NA")) %>% 
+mutate(ToHighlight = ifelse(Country_gr == "Ελλάδα", "yes", "no" ))
+
+## Sorting 
+
+data_teleworking$Question_gr <- factor(data_teleworking$Question_gr, levels=c("Ξεκίνησα να δουλεύω από το σπίτι λόγω της κατάστασης (Απρίλιος-Μάιος 2020)", 
+                               "Δουλεύω από το σπίτι (Ιούνιος-Ιούλιος 2020)", 
+                               "Δουλεύω από το σπίτι (Φεβρουάριος-Μάρτιος 2021)"))
+
+data_teleworking$Question <- factor(data_teleworking$Question, levels=c( "Started working from home as a result of the situation (April-May 2020)", "Working from home (June-July 2020)","Working from home (February-March 2021)"))
+
+data_teleworking$Country = factor(data_teleworking$Country, levels = c(
+"Romania",
+"Slovenia",
+"Greece",
+"Croatia",
+"Bulgaria",
+'Hungary',
+'Latvia',
+"Slovakia",
+"Poland",
+"Spain",
+"Cyprus",
+"Czechia",
+"Germany",
+"Estonia",
+"Lithuania",
+"France",
+"Malta",
+"Portugal",
+"Italy",
+"Austria",
+"Ireland",
+"Sweden",
+"Denmark",
+"Netherlands",
+"Belgium",
+"Luxembourg",
+"Finland",
+"EU-27"
+))
+
+
+data_teleworking$Country_gr = factor(data_teleworking$Country_gr, levels = c(
+"Ρουμανία",
+"Σλοβενία",
+"Ελλάδα",
+"Κροατία",
+"Βουλγαρία",
+'Ουγγαρία',
+'Λετονία',
+"Σλοβακία",
+"Πολωνία",
+"Ισπανία",
+"Κύπρος",
+"Τσεχία",
+"Γερμανία",
+"Εσθονία",
+"Λιθουανία",
+"Γαλλία",
+"Μάλτα",
+"Πορτογαλία",
+"Ιταλία",
+"Αυστρία",
+"Ιρλανδία",
+"Σουηδία",
+"Δανία",
+"Ολλανδία",
+"Βέλγιο",
+"Λουξεμβούργο",
+"Φινλανδία",
+"EE-27"
+))
+
+
+
+#### PLOTS
+plot_tele_gr = ggplot(data_teleworking, aes(Country_gr, share, fill = ToHighlight, group = Question_gr))+
+    theme_bw()+
+    geom_bar(stat = "identity",position = "dodge", width = 0.8)+
+    scale_fill_manual( values = c( "yes"="blue", "no"="tomato" ), guide = FALSE )+
+    coord_flip()+
+    facet_wrap(~Question_gr , ncol = 3, scales = "free", strip.position = "top", labeller = label_wrap_gen(30))+
+    # scale_y_continuous(limits = c(0, 5))+
+# scale_fill_manual(labels = c("2008", "2019"), values = c("red", "blue"))+
+   theme( 
+      # panel.border = element_blank(),
+        strip.text.x = element_text(size = 12, angle = 0, face = "bold"),
+        axis.text.y = element_text(color = "grey20", size = 10.5, angle = 0, face = "bold"),
+        axis.text.x = element_text(color = "grey20", size = 10.5, angle = 0, face = "bold"),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 13),
+        plot.title = element_text(size = 11, face = 'bold'),
+        # plot.caption = element_text(size = 10, hjust = 0),
+        plot.caption = element_text(size = 8.5, hjust = 0),
+        axis.title.x = element_text(size = 11, angle = 0),
+        axis.title.y = element_text(size = 11, angle = 0),
+        # plot.caption = element_text(lineheight = 3.0), 
+        legend.position = ""
+        )+
+    xlab("")+ylab("Ποσοστό")+
+    ggtitle("Ποσοστό εργατικού δυναμικού που εργάζεται από το σπίτι")+
+    labs(caption="Γράφημα: ΕΛΙΑΜΕΠ, Πηγή Δεδομένων: Eurofound. \nΣτοιχεία για την Πολωνία, Κύπρο, Μάλτα και Λουξεμβούργο κατά τον Ιούνιο-Ιούλιο 2020 δεν είναι διαθέσιμα")
+   # scale_fill_discrete(labels = c("2008", "2019"))
+
+ggsave("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/December/Week 5/plot_tele_gr_updated.png",plot_tele_gr,  width = 33, height = 25, units = 'cm')
+
+plot_tele_eng = ggplot(data_teleworking, aes(Country, share, fill = ToHighlight, group = Question))+
+    theme_bw()+
+    geom_bar(stat = "identity",position = "dodge", width = 0.8)+
+    scale_fill_manual( values = c( "yes"="blue", "no"="tomato" ), guide = FALSE )+
+    coord_flip()+
+  # facet_grid(rows = vars(Countries), scales = "free_y", space = "free_y", switch = "y")+
+    facet_wrap(~Question , ncol = 3, scales = "free", strip.position = "top", labeller = label_wrap_gen(30))+
+    # scale_y_continuous(limits = c(0, 5))+
+# scale_fill_manual(labels = c("2008", "2019"), values = c("red", "blue"))+
+   theme( 
+      # panel.border = element_blank(),
+        strip.text.x = element_text(size = 12, angle = 0, face = "bold"),
+        axis.text.y = element_text(color = "grey20", size = 10.5, angle = 0, face = "bold"),
+        axis.text.x = element_text(color = "grey20", size = 10.5, angle = 0, face = "bold"),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 13),
+        plot.title = element_text(size = 11, face = 'bold'),
+        # plot.caption = element_text(size = 10, hjust = 0),
+        
+        
+        
+        plot.caption = element_text(size = 8.5, hjust = 0),
+        axis.title.x = element_text(size = 11, angle = 0),
+        axis.title.y = element_text(size = 11, angle = 0),
+        # plot.caption = element_text(lineheight = 3.0), 
+        legend.position = ""
+        )+
+    xlab("")+ylab("Share")+
+    ggtitle("Share of labour force working from home")+
+    labs(caption="Graph: ELIAMEP, Source: Eurofound. \nData for Poland, Cyprus, Malta and Luxemburg over June-July 2020 are not available")
+   # scale_fill_discrete(labels = c("2008", "2019"))
+
+ggsave("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/December/Week 5/plot_tele_eng_updated.png",plot_tele_eng,  width = 33, height = 25, units = 'cm')
+
+```
+
+
+
+
+```{r Rapid-Self Test}
+Sys.getlocale()
+Sys.setlocale(category = "LC_ALL", locale = "Greek")
+
+data_rapid = read.xlsx("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/January/week 1/Rapid - Self Tests/Skroutz.xlsx", 1) %>% 
+  separate(Location, into = c('Perfecture', 'Region'), sep = "\\ ") %>% 
+  filter(Perfecture == "Attiki" | Perfecture == "Thessaloniki") %>% 
+  select(-Region)
+
+data_self = read.xlsx("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/January/week 1/Rapid - Self Tests/Skroutz.xlsx", 2) %>% 
+  separate(Location, into = c('Perfecture', 'Region'), sep = "\\ ") %>% 
+  filter(Perfecture == "Attiki" ) %>% 
+  select(-Region)
+
+
+plot_rapid_eng = ggplot(data_rapid, aes(x=Anonymized.Brand, y=Price.02_01_22, fill=Anonymized.Brand)) + 
+  geom_violin()+
+  facet_wrap(~Perfecture)+
+  theme( 
+      # panel.border = element_blank(),
+        strip.text.x = element_text(size = 12, angle = 0, face = "bold"),
+        axis.text.y = element_text(color = "grey20", size = 10.5, angle = 0, face = "bold"),
+        axis.text.x = element_text(color = "grey20", size = 10.5, angle = 0, face = "bold"),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 13),
+        plot.title = element_text(size = 11, face = 'bold'),
+        # plot.caption = element_text(size = 10, hjust = 0),
+        plot.caption = element_text(size = 8.5, hjust = 0),
+        axis.title.x = element_text(size = 11, angle = 0),
+        axis.title.y = element_text(size = 11, angle = 0),
+        # plot.caption = element_text(lineheight = 3.0), 
+        legend.position = ""
+        )+
+    xlab("Rapid Test Brands")+ylab("Euros")+
+    ggtitle("Price dispersion for Rapid Tests per Prefecture")+
+      labs(caption="Prices were retrieved by searching 'Rapid covid test' on skroutz.gr on Sunday 02 Jan 2022, ranking them by popularity and selecting the 5 most popular brands\nAll prices refer to rapid tests of 1 piece")
+
+ggsave("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/January/week 1/Rapid - Self Tests/plot_rapid_eng_updated.png",plot_rapid_eng,  width = 33, height = 25, units = 'cm')
+
+plot_self_eng = ggplot(data_self, aes(x=Anonymized.Brand, y=Price.02_01_22, fill=Anonymized.Brand)) + 
+  geom_violin()+
+  theme( 
+      # panel.border = element_blank(),
+        strip.text.x = element_text(size = 12, angle = 0, face = "bold"),
+        axis.text.y = element_text(color = "grey20", size = 10.5, angle = 0, face = "bold"),
+        axis.text.x = element_text(color = "grey20", size = 10.5, angle = 0, face = "bold"),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 13),
+        plot.title = element_text(size = 11, face = 'bold'),
+        # plot.caption = element_text(size = 10, hjust = 0),
+        plot.caption = element_text(size = 8.5, hjust = 0),
+        axis.title.x = element_text(size = 11, angle = 0),
+        axis.title.y = element_text(size = 11, angle = 0),
+        # plot.caption = element_text(lineheight = 3.0), 
+        legend.position = ""
+        )+
+    xlab("Rapid Test Brands")+ylab("Euros")+
+    ggtitle("Price dispersion for Self Tests in Attiki")+
+      labs(caption="Prices were retrieved by searching 'Rapid covid test' on skroutz.gr on Sunday 02 Jan 2022, ranking them by popularity and selecting the 5 most popular brands\nAll prices refer to rapid tests of 1 piece\nBrand E only has one store selling it")
+
+ggsave("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/January/week 1/Rapid - Self Tests/plot_self_eng_updated.png",plot_self_eng,  width = 33, height = 25, units = 'cm')
+
+```
+
+
+```{r Health Expenditures}
+library(forcats)
+Sys.getlocale()
+Sys.setlocale(category = "LC_ALL", locale = "Greek")
+
+data_healthexp = read.xlsx("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/January/week 1/Health Expenditures/Total_Health_Expenditures.xlsx", 1)  %>% 
+ pivot_longer("Voluntary.health.care.payment.schemes":"Government.schemes.and.compulsory.contributory.health.care.financing.schemes", names_to = 'schemes', values_to = "expenditures") %>% 
+  mutate(Total = as.numeric(Total)) %>% 
+  mutate(expenditures = as.numeric(expenditures)) %>% 
+  group_by(Countries) %>% mutate(percentage = expenditures/Total*100) %>% mutate(percentage = round(percentage,1)) %>% ungroup() %>% 
+  mutate(ToHighlight = ifelse(Countries == "Greece", "yes", "no" )) %>% 
+  filter(Countries != "Malta" & Countries != "European Union - 27 countries (from 2020)") %>% ungroup() %>% 
+  mutate(Countries = case_when(Countries == "Germany (until 1990 former territory of the FRG)"~'Germany', TRUE ~ Countries)) %>% 
+  mutate(scheme = case_when(schemes == 'Voluntary.health.care.payment.schemes'~'Voluntary', 
+                            schemes == 'Rest.of.the.world.financing.schemes..non.resident.'~'Non-residents', 
+                            schemes == 'Household.out.of.pocket.payment'~'Out of pocket',
+                            schemes == 'Government.schemes.and.compulsory.contributory.health.care.financing.schemes'~'Government', 
+                            TRUE ~ 'NA')) %>% 
+  mutate(scheme_gr = case_when(schemes == 'Voluntary.health.care.payment.schemes'~'Ιδωτική Ασφάλιση', 
+                            schemes == 'Rest.of.the.world.financing.schemes..non.resident.'~'Κάτοικοι εξωτερικού', 
+                            schemes == 'Household.out.of.pocket.payment'~'Οικογενειακή Δαπάνη',
+                            schemes == 'Government.schemes.and.compulsory.contributory.health.care.financing.schemes'~'Δημόσια Δαπάνη', 
+                            TRUE ~ 'NA')) %>% 
+  mutate(Country_gr = case_when(
+Countries == "Greece"~"Ελλάδα",
+Countries == "Romania" ~ "Ρουμανία",
+Countries == "Hungary"~ "Ουγγαρία",
+Countries == "Bulgaria"~ "Βουλγαρία",
+Countries == "Croatia"~ "Κροατία",
+Countries == "Malta"~ "Μάλτα",
+Countries == "Slovakia" ~ "Σλοβακία",
+Countries == "Lithuania"~ "Λιθουανία",
+Countries == "Latvia"~ "Λετονία",
+Countries == "France"~ "Γαλλία",
+Countries == "Czechia"~ "Τσεχία",
+Countries == 'Sweden'~ "Σουηδία",
+Countries == "Finland"~ "Φινλανδία",
+Countries == "Spain"~ "Ισπανία",
+Countries == "Ireland"~"Ιρλανδία",
+Countries == "Slovenia"~ "Σλοβενία",
+Countries == "Portugal"~ "Πορτογαλία",
+Countries == "Poland"~ "Πολωνία",
+Countries == 'Belgium'~ "Βέλγιο",
+Countries == 'Germany'~ "Γερμανία",
+Countries == "Estonia"~ "Εσθονία",
+Countries == "Luxembourg"~ "Λουξεμβούργο",
+Countries == 'Netherlands'~ "Ολλανδία",
+Countries == 'Denmark'~ "Δανία",
+Countries == 'Italy'~ "Ιταλία",
+Countries == 'Cyprus'~ "Κύπρος",
+Countries == 'Austria'~ "Αυστρία",
+Countries == 'Norway'~ "Νορβηγία",
+Countries == 'Iceland'~ "Ισλανδία",
+Countries == 'Switzerland'~ "Ελβετία",
+Countries == 'United Kingdom'~ "ΗΒ",
+Countries == "EU-27"~"EE-27",
+TRUE ~ "NA")) %>% filter(schemes !='Rest.of.the.world.financing.schemes..non.resident.')
+
+# expenses = data_healthexp %>% filter(!duplicated(Countries)) %>% mutate(Countries = reorder(Countries, Total))%>% mutate(Total_bil = Total/1000)
+# expenses$Countries = reorder(expenses$Countries, expenses$Total) 
+# expenses$Country_gr = reorder(expenses$Country_gr, expenses$Total) 
+
+data_healthexp$Countries = factor(data_healthexp$Countries, levels=c(
+'France',
+'Luxembourg', 
+'Netherlands', 
+'Croatia', 
+'Slovenia', 
+'Ireland', 
+'Germany', 
+'Norway', 
+'Sweden', 
+'Czechia', 
+'Denmark', 
+'Iceland', 
+'United Kingdom', 
+'Finland', 
+'Austria', 
+'Belgium', 
+'Romania', 
+'Slovakia', 
+'Poland', 
+'Spain', 
+'Italy', 
+'Estonia', 
+'Switzerland', 
+'Hungary', 
+'Portugal', 
+'Cyprus', 
+'Lithuania', 
+'Greece', 
+'Latvia', 
+'Bulgaria'))
+  
+
+
+data_healthexp$Country_gr = factor(data_healthexp$Country_gr, levels=c(
+'Γαλλία',
+'Λουξεμβούργο', 
+'Ολλανδία', 
+'Κροατία', 
+'Σλοβενία', 
+'Ιρλανδία', 
+'Γερμανία', 
+'Νορβηγία', 
+'Σουηδία', 
+'Τσεχία', 
+'Δανία', 
+'Ισλανδία', 
+'ΗΒ', 
+'Φινλανδία', 
+'Αυστρία', 
+'Βέλγιο', 
+'Ρουμανία', 
+'Σλοβακία', 
+'Πολωνία', 
+'Ισπανία', 
+'Ιταλία', 
+'Εσθονία', 
+'Ελβετία', 
+'Ουγγαρία', 
+'Πορτογαλία', 
+'Κύπρος', 
+'Λιθουανία', 
+'Ελλάδα', 
+'Λετονία', 
+'Βουλγαρία'))
+
+
+data_healthexp$scheme <- factor(data_healthexp$scheme, levels=c('Voluntary',"Government", "Out of pocket"))
+data_healthexp$scheme_gr <- factor(data_healthexp$scheme_gr, levels=c("Ιδωτική Ασφάλιση","Δημόσια Δαπάνη", "Οικογενειακή Δαπάνη"))
+
+
+breakdown_plot = ggplot(data_healthexp, aes(fill=scheme, y=percentage, x=Countries)) + 
+    geom_bar(position="stack", stat="identity") +
+    # scale_fill_manual( values = c( "yes"="blue", "no"="tomato" ), guide = FALSE )+
+    coord_flip()+
+     geom_text(aes(label = percentage), position = position_stack(vjust = 0.5), size = 4)+
+  ggtitle("Composition of healthcare expenditures (2019)") +theme( 
+      # panel.border = element_blank(),
+        strip.text.x = element_text(size = 12, angle = 0, face = "bold"),
+        axis.text.y = element_text(color = "grey20", size = 10.5, angle = 0, face = "bold"),
+        axis.text.x = element_text(color = "grey20", size = 10.5, angle = 0, face = "bold"),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 13),
+        plot.title = element_text(size = 14, face = 'bold'),
+        # plot.caption = element_text(size = 10, hjust = 0),
+        
+        
+        
+        plot.caption = element_text(size = 8.5, hjust = 0),
+        axis.title.x = element_text(size = 11, angle = 0),
+        axis.title.y = element_text(size = 11, angle = 0),
+        # plot.caption = element_text(lineheight = 3.0), 
+        # legend.position = ""
+        )+
+    xlab("")+ylab("% of total expenditure")+
+    scale_x_discrete(labels=c("Greece"=expression(bold(Greece)), parse=TRUE))+
+  labs(caption="Graph: ELIAMEP, Source: Eurostat \nData Malta for 2019 are not available")
+
+# 
+# expenditures_plot = ggplot(expenses, aes(x=Countries, y= Total_bil)) +
+#   geom_segment( aes(x=Countries, xend=Countries, y=0, yend=Total_bil)) +
+#   geom_point( size=5, color="red", fill=alpha("orange", 0.3), alpha=0.7, shape=21, stroke=2) +
+#   coord_flip()+
+#   ggtitle("Total healthcare expenditures (2019)") +
+#   theme(
+#       # panel.border = element_blank(),
+#         strip.text.x = element_text(size = 12, angle = 0, face = "bold"),
+#         axis.text.y = element_text(color = "grey20", size = 10.5, angle = 0, face = "bold"),
+#         axis.text.x = element_text(color = "grey20", size = 10.5, angle = 0, face = "bold"),
+#         legend.title = element_blank(),
+#         legend.text = element_text(size = 13),
+#         plot.title = element_text(size = 14, face = 'bold'),
+#         # plot.caption = element_text(size = 10, hjust = 0),
+# 
+# 
+# 
+#         plot.caption = element_text(size = 8.5, hjust = 0),
+#         axis.title.x = element_text(size = 11, angle = 0),
+#         axis.title.y = element_text(size = 11, angle = 0),
+#         # plot.caption = element_text(lineheight = 3.0),
+#         legend.position = ""
+#         )+
+#     xlab("")+ylab("in billion euros")+
+#   scale_x_discrete(labels=c("Greece"=expression(bold(Greece)), parse=TRUE))+
+#     labs(caption="Graph: ELIAMEP, Source: Eurostat \nData Malta for 2019 are not available")
+
+# plot_eng_updated = grid.arrange(expenditures_plot, breakdown_plot, ncol=2)
+ggsave("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/January/week 1/Health Expenditures/plot_healthexp_eng_updated.png",breakdown_plot,  width = 33, height = 25, units = 'cm')
+
+# Γραφημα στα ελληνικά
+
+breakdown_plot_gr = ggplot(data_healthexp, aes(fill=scheme_gr, y=percentage, x=Country_gr)) + 
+    geom_bar(position="stack", stat="identity") +
+    # scale_fill_manual( values = c( "yes"="blue", "no"="tomato" ), guide = FALSE )+
+    coord_flip()+
+     geom_text(aes(label = percentage), position = position_stack(vjust = 0.5), size = 4)+
+  ggtitle("Σύνθεση της δαπάνης για την υγεία (2019)") +theme( 
+      # panel.border = element_blank(),
+        strip.text.x = element_text(size = 12, angle = 0, face = "bold"),
+        axis.text.y = element_text(color = "grey20", size = 10.5, angle = 0, face = "bold"),
+        axis.text.x = element_text(color = "grey20", size = 10.5, angle = 0, face = "bold"),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 13),
+        plot.title = element_text(size = 14, face = 'bold'),
+        # plot.caption = element_text(size = 10, hjust = 0),
+        
+        
+        
+        plot.caption = element_text(size = 8.5, hjust = 0),
+        axis.title.x = element_text(size = 11, angle = 0),
+        axis.title.y = element_text(size = 11, angle = 0),
+        # plot.caption = element_text(lineheight = 3.0), 
+        # legend.position = ""
+        )+
+    xlab("")+ylab("% επί της συνολικής δαπάνης")+
+    scale_x_discrete(labels=c("Ελλάδα"=expression(bold(Ελλάδα)), parse=TRUE))+
+  labs(caption="Γράφημα: ΕΛΙΑΜΕΠ, Πηγή: Eurostat \nΔεδομένα για τη Μάλτα για το έτος 2019 δεν είναι διαθέσιμα.")
+
+
+# expenditures_plot_gr = ggplot(expenses, aes(x=Country_gr, y= Total_bil)) +
+#   geom_segment( aes(x=Country_gr, xend=Country_gr, y=0, yend=Total_bil)) +
+#   geom_point( size=5, color="red", fill=alpha("orange", 0.3), alpha=0.7, shape=21, stroke=2) +
+#   coord_flip()+
+#   ggtitle("Συνολική δαπάνη για την υγεία (2019)") + 
+#   theme( 
+#       # panel.border = element_blank(),
+#         strip.text.x = element_text(size = 12, angle = 0, face = "bold"),
+#         axis.text.y = element_text(color = "grey20", size = 10.5, angle = 0, face = "bold"),
+#         axis.text.x = element_text(color = "grey20", size = 10.5, angle = 0, face = "bold"),
+#         legend.title = element_blank(),
+#         legend.text = element_text(size = 13),
+#         plot.title = element_text(size = 14, face = 'bold'),
+#         # plot.caption = element_text(size = 10, hjust = 0),
+#         
+#         
+#         
+#         plot.caption = element_text(size = 8.5, hjust = 0),
+#         axis.title.x = element_text(size = 11, angle = 0),
+#         axis.title.y = element_text(size = 11, angle = 0),
+#         # plot.caption = element_text(lineheight = 3.0), 
+#         legend.position = ""
+#         )+
+#     xlab("")+ylab("δισεκατομμύρια ευρώ")+
+#   scale_x_discrete(labels=c("Ελλάδα"=expression(bold(Ελλάδα)), parse=TRUE))+
+#     labs(caption="Γράφημα: ΕΛΙΑΜΕΠ, Πηγή: Eurostat \nΔεδομένα για τη Μάλτα για το έτος 2019 δεν είναι διαθέσιμα.")
+
+
+# plot_health_gr = grid.arrange(expenditures_plot_gr, breakdown_plot_gr, ncol=2)
+ggsave("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/January/week 1/Health Expenditures/plot_healthexp_gr_updated.png",breakdown_plot_gr,  width = 33, height = 25, units = 'cm')
+
+
+
+```
+
+
+
+
+
+```{r, Measures against high energy prices}
+# Sys.getlocale()
+# Sys.setlocale(category = "LC_ALL", locale = "Greek")
+
+data_inflationmeasures = read.xlsx("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/January/Week 2/National measures  against price .xlsx", 1) %>% 
+  mutate(Start.Date = as.Date(Start.Date)) %>% 
+  mutate(ToHighlight = ifelse(Countries. == "Greece", "yes", "no" )) %>% 
+  mutate(Country_gr = case_when(
+Countries. == "Greece"~"Ελλάδα",
+Countries. == "Romania" ~ "Ρουμανία",
+Countries. == "Hungary"~ "Ουγγαρία",
+Countries. == "Bulgaria"~ "Βουλγαρία",
+Countries. == "Croatia"~ "Κροατία",
+Countries. == "Malta"~ "Μάλτα",
+Countries. == "Slovakia" ~ "Σλοβακία",
+Countries. == "Lithuania"~ "Λιθουανία",
+Countries. == "Latvia"~ "Λετονία",
+Countries. == "France"~ "Γαλλία",
+Countries. == "Czech Republic"~ "Τσεχία",
+Countries. == 'Sweden'~ "Σουηδία",
+Countries. == "Finland"~ "Φινλανδία",
+Countries. == "Spain"~ "Ισπανία",
+Countries. == "Ireland"~"Ιρλανδία",
+Countries. == "Slovenia"~ "Σλοβενία",
+Countries. == "Portugal"~ "Πορτογαλία",
+Countries. == "Poland"~ "Πολωνία",
+Countries. == 'Belgium'~ "Βέλγιο",
+Countries. == 'Germany'~ "Γερμανία",
+Countries. == "Estonia"~ "Εσθονία",
+Countries. == "Luxembourg"~ "Λουξεμβούργο",
+Countries. == 'The Netherlands'~ "Ολλανδία",
+Countries. == 'Denmark'~ "Δανία",
+Countries. == 'Italy'~ "Ιταλία",
+Countries. == 'Cyprus'~ "Κύπρος",
+Countries. == 'Austria'~ "Αυστρία",
+Countries. == 'Norway'~ "Νορβηγία",
+Countries. == 'Iceland'~ "Ισλανδία",
+Countries. == 'Switzerland'~ "Ελβετία",
+Countries. == 'United Kingdom'~ "ΗΒ",
+Countries. == "EU-27"~"EE-27",
+)) %>% 
+   mutate(Measures_gr = case_when(
+Measures == "Reduced energy tax /VAT"~'Έκπτωση ενεργειακού φόρου/ΦΠΑ',
+Measures == 'Retail price regulation'~'Διαμόρφωση λιανικής τιμής ενέργειας',
+Measures =='Wholesale price regulation'~'Διαμόρφωση χονδρικής τιμής ενέργειας',
+Measures == 'Transfers to vulnerable groups'~'Επιδοτήσεις σε ευάλωτες ομάδες',
+Measures == 'Mandate to state-owned firms'~'Εντολή σε δημόσια επιχείρηση ενέργειας',
+Measures == 'Other'~'Άλλο',
+TRUE ~ "NA"
+))
+  
+data_inflationmeasures$Measures = factor(data_inflationmeasures$Measures, levels=c(
+  "Reduced energy tax /VAT" , 'Retail price regulation', 'Wholesale price regulation', 'Transfers to vulnerable groups', 'Mandate to state-owned firms', 'Other')) 
+
+data_inflationmeasures$Measures_gr = factor(data_inflationmeasures$Measures_gr, levels=c(
+  'Έκπτωση ενεργειακού φόρου/ΦΠΑ', 'Διαμόρφωση λιανικής τιμής ενέργειας', 'Διαμόρφωση χονδρικής τιμής ενέργειας', 'Επιδοτήσεις σε ευάλωτες ομάδες', 'Εντολή σε δημόσια επιχείρηση ενέργειας', 'Άλλο')) 
+
+
+plot_gr = ggplot(data_inflationmeasures, aes(x=Start.Date, xend=End.Date, y=Country_gr, yend=Country_gr, fill = ToHighlight, color=Measures_gr)) +
+  geom_segment(size = 2) +
+  facet_wrap(~Measures_gr) +
+  theme_bw()+
+  labs(title='Χρονολόγιο εθνικών πολιτικών αντιμετώπισης αυξημένου ενεργειακού κόστους', x='', y='Χώρες') +
+  scale_colour_manual(values = c('pink', 'purple', 'blue', 'green', 'red', 'yellow')) +
+  theme_solarized() + 
+  theme(axis.title = element_text(), 
+        # panel.border = element_blank(),
+        strip.text.x = element_text(size = 12, angle = 0, face = "bold"),
+        axis.text.y = element_text(color = "grey20", size = 12, angle = 0, face = "bold"),
+        axis.text.x = element_text(color = "grey20", size = 12, angle = 0, face = "bold"),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 10),
+        legend.position = '',
+        plot.title = element_text(size = 17, face = 'bold'),
+        # plot.caption = element_text(size = 10, hjust = 0),
+        plot.caption = element_text(size = 8.5, hjust = 0),
+        axis.title.x = element_text(size = 11, angle = 0),
+        axis.title.y = element_text(size = 11, angle = 90),)+
+    scale_y_discrete(labels=c("Ελλάδα"=expression(bold(Ελλάδα)), parse=TRUE))+
+  labs(caption="Γράφημα: ΕΛΙΑΜΕΠ, Πηγή Δεδομένων: Bruegel ('National policies to shield consumers from rising energy prices' by Giovanni Sgaravatti, Simone Tagliapietra and Georg Zachmann) \nH έκπτωση ενεργειακού φόρου/ΦΠΑ για τις Εσθονία, Γερμανία, Ολλανδία, η Διαμόρφωση λιανικής τιμής ενέργειας για τις Ουγγαρία, Λιθουανία, Πολωνία, \nη Διαμόρφωση χονδρικής τιμής ενέργεια για τη Γαλλία και οι Επιδοτήσεις σε ευάλωτες ομάδες για τις Πολωνία, Τσεχία, Λιθουανία έχουν προταθεί ή συζητηθεί")
+
+ggsave("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/January/Week 2/plot_pricemeasures_gr_updated.png",plot_gr,  width = 33, height = 25, units = 'cm')
+
+plot_eng = ggplot(data_inflationmeasures, aes(x=Start.Date, xend=End.Date, y=Countries., yend=Countries., fill = ToHighlight, color=Measures)) +
+  geom_segment(size = 2) +
+  facet_wrap(~Measures) +
+  theme_bw()+
+  labs(title='Timeline of national policies against rising energy prices', x='', y='Countries') +
+  scale_colour_manual(values = c('pink', 'purple', 'blue', 'green', 'red', 'yellow')) +
+  theme_solarized() + 
+  theme(axis.title = element_text(), 
+        # panel.border = element_blank(),
+        strip.text.x = element_text(size = 12, angle = 0, face = "bold"),
+        axis.text.y = element_text(color = "grey20", size = 12, angle = 0, face = "bold"),
+        axis.text.x = element_text(color = "grey20", size = 12, angle = 0, face = "bold"),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 15),
+        legend.position = '',
+        plot.title = element_text(size = 17, face = 'bold'),
+        # plot.caption = element_text(size = 10, hjust = 0),
+        plot.caption = element_text(size = 8.5, hjust = 0),
+        axis.title.x = element_text(size = 11, angle = 0),
+        axis.title.y = element_text(size = 11, angle = 90),)+
+    scale_y_discrete(labels=c("Greece"=expression(bold(Greece)), parse=TRUE))+
+  labs(caption="Graph: ELIAMEP, Source: Bruegel ('National policies to shield consumers from rising energy prices' by Giovanni Sgaravatti, Simone Tagliapietra and Georg Zachmann) \nReduced energy tax/VAT for Esthonia, Germany, Netherlands, Regulation of retail price for Hungary, Lithuani, Poland, \nRegulation for wholesale price for France and Transfers to vulnerable groups for Poland, Czech Republic, Lithuania have been either discussed or proposed")
+
+
+ggsave("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/January/Week 2/plot_pricemeasures_eng_updated.png",plot_eng,  width = 33, height = 25, units = 'cm')
+
+  
+
+
+
+```
+
+
+
+```{r Employment Gap and Duncan Index}
+Sys.getlocale()
+Sys.setlocale(category = "LC_ALL", locale = "Greek")
+
+data_ggap = read.xlsx("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/January/Week 3/female_male_labour_force_participation_2020.xlsx", 1) %>% 
+  pivot_longer("Male":"Female", names_to = 'Type', values_to = "Values")%>% 
+  mutate(Country_gr = case_when(
+Countries == "Greece"~"Ελλάδα",
+Countries == "Romania" ~ "Ρουμανία",
+Countries == "Hungary"~ "Ουγγαρία",
+Countries == "Bulgaria"~ "Βουλγαρία",
+Countries == "Croatia"~ "Κροατία",
+Countries == "Malta"~ "Μάλτα",
+Countries == "Slovakia" ~ "Σλοβακία",
+Countries == "Lithuania"~ "Λιθουανία",
+Countries == "Latvia"~ "Λετονία",
+Countries == "France"~ "Γαλλία",
+Countries == "Czechia"~ "Τσεχία",
+Countries == 'Sweden'~ "Σουηδία",
+Countries == "Finland"~ "Φινλανδία",
+Countries == "Spain"~ "Ισπανία",
+Countries == "Ireland"~"Ιρλανδία",
+Countries == "Slovenia"~ "Σλοβενία",
+Countries == "Portugal"~ "Πορτογαλία",
+Countries == "Poland"~ "Πολωνία",
+Countries == 'Belgium'~ "Βέλγιο",
+Countries == 'Germany'~ "Γερμανία",
+Countries == "Estonia"~ "Εσθονία",
+Countries == "Luxembourg"~ "Λουξεμβούργο",
+Countries == 'Netherlands'~ "Ολλανδία",
+Countries == 'Denmark'~ "Δανία",
+Countries == 'Italy'~ "Ιταλία",
+Countries == 'Cyprus'~ "Κύπρος",
+Countries == 'Austria'~ "Αυστρία",
+Countries == 'Norway'~ "Νορβηγία",
+Countries == 'Iceland'~ "Ισλανδία",
+Countries == 'Switzerland'~ "Ελβετία",
+Countries == 'United Kingdom'~ "ΗΒ",
+Countries == "EU-27"~"ΕΕ-27",
+)) %>% 
+  mutate(Type_gr = case_when(
+Type == "Male"~"Άνδρες",
+Type == "Female" ~ "Γυναίκες", 
+TRUE ~ 'NA'))
+
+data_ggap$Countries = factor(data_ggap$Countries, levels=c(
+'Sweden',
+'Germany',
+'Lithuania',
+'Estonia',
+'Netherlands',
+'Finland',
+'Latvia',
+'Denmark',
+'Slovenia',
+'Hungary',
+'Czechia',
+'Portugal',
+'Austria',
+'France',
+'Cyprus',
+'Luxembourg',
+'Bulgaria',
+'Malta',
+'Ireland',
+'EU-27',
+'Slovakia',
+'Belgium',
+'Poland',
+'Croatia',
+'Romania',
+'Spain',
+'Italy',
+'Greece'
+  )) 
+
+data_ggap$Country_gr = factor(data_ggap$Country_gr, levels=c(
+'Σουηδία',
+'Γερμανία',
+'Λιθουανία',
+'Εσθονία',
+'Ολλανδία',
+'Φινλανδία',
+'Λετονία',
+'Δανία',
+'Σλοβενία',
+'Ουγγαρία',
+'Τσεχία',
+'Πορτογαλία',
+'Αυστρία',
+'Γαλλία',
+'Κύπρος',
+'Λουξεμβούργο',
+'Βουλγαρία',
+'Μάλτα',
+'Ιρλανδία',
+'ΕΕ-27',
+'Σλοβακία',
+'Βέλγιο',
+'Πολωνία',
+'Κροατία',
+'Ρουμανία',
+'Ισπανία',
+'Ιταλία',
+'Ελλάδα'
+  )) 
+
+data_ggap$Type = factor(data_ggap$Type, levels=c('Female', 'Male'))
+data_ggap$Type_gr = factor(data_ggap$Type_gr, levels=c('Γυναίκες', 'Άνδρες'))
+
+
+plot_eng_ggap = ggplot(data_ggap, aes(Countries, Values, fill = Type))+
+    theme_bw()+
+    coord_flip()+
+    geom_bar(stat = "identity",position = "dodge", width = 0.8)+
+    theme_solarized() + 
+    labs(title='Share of employment by sex', x='', y='Share (%)') +
+  theme(axis.title = element_text(), 
+        # panel.border = element_blank(),
+        strip.text.x = element_text(size = 12, angle = 0, face = "bold"),
+        axis.text.y = element_text(color = "grey20", size = 12, angle = 0),
+        axis.text.x = element_text(color = "grey20", size = 12, angle = 0),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 15),
+        legend.position = 'top',
+        plot.title = element_text(size = 17, face = 'bold'),
+        # plot.caption = element_text(size = 10, hjust = 0),
+        plot.caption = element_text(size = 8.5, hjust = 0))+
+  scale_x_discrete(labels=c("Ελλάδα"=expression(bold(Ελλάδα)), parse=TRUE))+
+  labs(caption="Graph: ELIAMEP, Source: Eurostat")
+
+ggsave("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/January/Week 3/plot_eng_flf.png",plot_eng_ggap,  width = 33, height = 25, units = 'cm')
+
+
+data_id = read.xlsx("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/January/Week 3/female_male_labour_force_participation_2020.xlsx", 2) %>% 
+  mutate(Country_gr = case_when(
+Countries == "Greece"~"Ελλάδα",
+Countries == "Romania" ~ "Ρουμανία",
+Countries == "Hungary"~ "Ουγγαρία",
+Countries == "Bulgaria"~ "Βουλγαρία",
+Countries == "Croatia"~ "Κροατία",
+Countries == "Malta"~ "Μάλτα",
+Countries == "Slovakia" ~ "Σλοβακία",
+Countries == "Lithuania"~ "Λιθουανία",
+Countries == "Latvia"~ "Λετονία",
+Countries == "France"~ "Γαλλία",
+Countries == "Czechia"~ "Τσεχία",
+Countries == 'Sweden'~ "Σουηδία",
+Countries == "Finland"~ "Φινλανδία",
+Countries == "Spain"~ "Ισπανία",
+Countries == "Ireland"~"Ιρλανδία",
+Countries == "Slovenia"~ "Σλοβενία",
+Countries == "Portugal"~ "Πορτογαλία",
+Countries == "Poland"~ "Πολωνία",
+Countries == 'Belgium'~ "Βέλγιο",
+Countries == 'Germany'~ "Γερμανία",
+Countries == "Estonia"~ "Εσθονία",
+Countries == "Luxembourg"~ "Λουξεμβούργο",
+Countries == 'Netherlands'~ "Ολλανδία",
+Countries == 'Denmark'~ "Δανία",
+Countries == 'Italy'~ "Ιταλία",
+Countries == 'Cyprus'~ "Κύπρος",
+Countries == 'Austria'~ "Αυστρία",
+Countries == 'Norway'~ "Νορβηγία",
+Countries == 'Iceland'~ "Ισλανδία",
+Countries == 'Switzerland'~ "Ελβετία",
+Countries == 'United Kingdom'~ "ΗΒ",
+Countries == "EU-27"~"EE-27", 
+TRUE ~ 'NA'
+)) 
+  
+
+data_id$Countries = factor(data_id$Countries, levels=c(
+'Sweden',
+'Germany',
+'Lithuania',
+'Estonia',
+'Netherlands',
+'Finland',
+'Latvia',
+'Denmark',
+'Slovenia',
+'Hungary',
+'Czechia',
+'Portugal',
+'Austria',
+'France',
+'Cyprus',
+'Luxembourg',
+'Bulgaria',
+'Malta',
+'Ireland',
+# 'EU-27',
+'Slovakia',
+'Belgium',
+'Poland',
+'Croatia',
+'Romania',
+'Spain',
+'Italy',
+'Greece'
+  )) 
+
+
+data_id$Country_gr = factor(data_id$Country_gr, levels=c(
+'Σουηδία',
+'Γερμανία',
+'Λιθουανία',
+'Εσθονία',
+'Ολλανδία',
+'Φινλανδία',
+'Λετονία',
+'Δανία',
+'Σλοβενία',
+'Ουγγαρία',
+'Τσεχία',
+'Πορτογαλία',
+'Αυστρία',
+'Γαλλία',
+'Κύπρος',
+'Λουξεμβούργο',
+'Βουλγαρία',
+'Μάλτα',
+'Ιρλανδία',
+# 'EU-27',
+'Σλοβακία',
+'Βέλγιο',
+'Πολωνία',
+'Κροατία',
+'Ρουμανία',
+'Ισπανία',
+'Ιταλία',
+'Ελλάδα'
+  )) 
+
+plot_eng_id = ggplot(data_id, aes(Countries, ID))+
+    theme_bw()+
+    coord_flip()+
+    geom_bar(stat = "identity",position = "dodge", width = 0.8, fill = "#FF6666")+
+    theme_solarized() + 
+    labs(title='Duncan dissimilarity index', x='', y='Index (0,1)') +
+  theme(axis.title = element_text(), 
+        # panel.border = element_blank(),
+        strip.text.x = element_text(size = 12, angle = 0, face = "bold"),
+        axis.text.y = element_text(color = "grey20", size = 12, angle = 0, face = "bold"),
+        axis.text.x = element_text(color = "grey20", size = 12, angle = 0, face = "bold"),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 15),
+        legend.position = 'top',
+        plot.title = element_text(size = 17, face = 'bold'),
+        # plot.caption = element_text(size = 10, hjust = 0),
+        plot.caption = element_text(size = 8.5, hjust = 0))
+
+
+
+plot_week3_eng = grid.arrange(plot_eng_id, plot_eng_ggap, ncol=2)
+ggsave("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/January/Week 3/plot__eng_updated.png",plot_week3_eng,  width = 33, height = 25, units = 'cm')
+
+plot_gr_ggap = ggplot(data_ggap, aes(Country_gr, Values, fill = Type_gr))+
+    theme_bw()+
+    coord_flip()+
+    geom_bar(stat = "identity",position = "dodge", width = 0.8)+
+    theme_solarized() + 
+    labs(title='Ποσοστό απασχόλησης ανά φύλο', x='', y='Ποσοστό (%)') +
+  theme(axis.title = element_text(), 
+        # panel.border = element_blank(),
+        strip.text.x = element_text(size = 12, angle = 0, face = "bold"),
+        axis.text.y = element_text(color = "grey20", size = 12, angle = 0),
+        axis.text.x = element_text(color = "grey20", size = 12, angle = 0),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 15),
+        legend.position = 'top',
+        plot.title = element_text(size = 17, face = 'bold'),
+        # plot.caption = element_text(size = 10, hjust = 0),
+        plot.caption = element_text(size = 8.5, hjust = 0))+
+   scale_x_discrete(labels=c("Ελλάδα"=expression(bold(Ελλάδα)), parse=TRUE))+
+  labs(caption="Γράφημα: ΕΛΙΑΜΕΠ, Πηγή: Eurostat")
+
+ggsave("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/January/Week 3/plot_gr_flf.png",plot_gr_ggap,  width = 33, height = 25, units = 'cm')
+  
+
+plot_gr_id = ggplot(data_id, aes(Country_gr, ID))+
+    theme_bw()+
+    coord_flip()+
+    geom_bar(stat = "identity",position = "dodge", width = 0.8, fill = "#FF6666")+
+    theme_solarized() + 
+    labs(title='Δείκτης Duncan διαχωρισμού επαγγελμάτων', x='', y='Δείκτης (0,1)') +
+  theme(axis.title = element_text(), 
+        # panel.border = element_blank(),
+        strip.text.x = element_text(size = 12, angle = 0, face = "bold"),
+        axis.text.y = element_text(color = "grey20", size = 12, angle = 0, face = "bold"),
+        axis.text.x = element_text(color = "grey20", size = 12, angle = 0, face = "bold"),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 15),
+        legend.position = 'top',
+        plot.title = element_text(size = 17, face = 'bold'),
+        # plot.caption = element_text(size = 10, hjust = 0),
+        plot.caption = element_text(size = 8.5, hjust = 0))
+
+
+plot_week3_gr = grid.arrange(plot_gr_id, plot_gr_ggap, ncol=2)
+ggsave("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/January/Week 3/plot__gr_updated.png",plot_week3_gr,  width = 33, height = 25, units = 'cm')
+
+
+```
+
+```{r Gender Pay Gap}
+Sys.getlocale()
+Sys.setlocale(category = "LC_ALL", locale = "Greek")
+
+data_ggap = read.xlsx("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/January/Week 3/gender_pay_gap.xlsx", 1) %>% 
+  pivot_longer("X2010":"X2019", names_to = 'Year', values_to = "Values") %>% 
+  mutate(Year = case_when(Year == "X2010"~"2010", 
+                          Year == "X2019"~"2019", 
+                          TRUE ~ "NA")) %>% 
+  mutate(Country_gr = case_when(
+Countries == "Greece"~"Ελλάδα",
+Countries == "Romania" ~ "Ρουμανία",
+Countries == "Hungary"~ "Ουγγαρία",
+Countries == "Bulgaria"~ "Βουλγαρία",
+Countries == "Croatia"~ "Κροατία",
+Countries == "Malta"~ "Μάλτα",
+Countries == "Slovakia" ~ "Σλοβακία",
+Countries == "Lithuania"~ "Λιθουανία",
+Countries == "Latvia"~ "Λετονία",
+Countries == "France"~ "Γαλλία",
+Countries == "Czechia"~ "Τσεχία",
+Countries == 'Sweden'~ "Σουηδία",
+Countries == "Finland"~ "Φινλανδία",
+Countries == "Spain"~ "Ισπανία",
+Countries == "Ireland"~"Ιρλανδία",
+Countries == "Slovenia"~ "Σλοβενία",
+Countries == "Portugal"~ "Πορτογαλία",
+Countries == "Poland"~ "Πολωνία",
+Countries == 'Belgium'~ "Βέλγιο",
+Countries == 'Germany'~ "Γερμανία",
+Countries == "Estonia"~ "Εσθονία",
+Countries == "Luxembourg"~ "Λουξεμβούργο",
+Countries == 'Netherlands'~ "Ολλανδία",
+Countries == 'Denmark'~ "Δανία",
+Countries == 'Italy'~ "Ιταλία",
+Countries == 'Cyprus'~ "Κύπρος",
+Countries == 'Austria'~ "Αυστρία",
+Countries == 'Norway'~ "Νορβηγία",
+Countries == 'Iceland'~ "Ισλανδία",
+Countries == 'Switzerland'~ "Ελβετία",
+Countries == 'United Kingdom'~ "ΗΒ",
+Countries == "EU-27"~"ΕΕ-27", 
+TRUE ~ "NA"))
+
+data_ggap$Country_gr = factor(data_ggap$Country_gr, levels=c(
+'Εσθονία',
+'Λετονία',
+'Αυστρία',
+"ΗΒ",
+'Γερμανία',
+'Τσεχία',
+'Σλοβακία',
+'Ουγγαρία',
+'Φινλανδία',
+'Γαλλία',
+'Ολλανδία',
+'ΕΕ-27',
+'Βουλγαρία',
+'Δανία',
+'Λιθουανία',
+'Ισπανία',
+'Σουηδία',
+'Μάλτα',
+'Κροατία',
+'Ιρλανδία',
+'Πορτογαλία',
+'Ελλάδα',
+'Κύπρος',
+'Πολωνία',
+'Σλοβενία',
+'Βέλγιο',
+'Ιταλία',
+'Ρουμανία',
+'Λουξεμβούργο')) 
+
+plot_gr_ggap = ggplot(data_ggap, aes(Country_gr, Values, fill = Year))+
+    theme_bw()+
+    coord_flip()+
+    geom_bar(stat = "identity",position = "dodge", width = 0.8)+
+    theme_solarized() + 
+    labs(title='Μισθολογικό χάσμα μεταξύ ανδρών και γυναικών', x='', y='Ποσοστό (%)') +
+  theme(axis.title = element_text(), 
+        # panel.border = element_blank(),
+        strip.text.x = element_text(size = 12, angle = 0, face = "bold"),
+        axis.text.y = element_text(color = "grey20", size = 12, angle = 0),
+        axis.text.x = element_text(color = "grey20", size = 12, angle = 0),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 15),
+        legend.position = 'top',
+        plot.title = element_text(size = 17, face = 'bold'),
+        # plot.caption = element_text(size = 10, hjust = 0),
+        plot.caption = element_text(size = 8.5, hjust = 0))+
+  scale_x_discrete(labels=c("Ελλάδα"=expression(bold(Ελλάδα)), parse=TRUE))+
+  labs(caption="Γράφημα: EΛΙΑΜΕΠ, Πηγή: Eurostat \nΔεδομένα για την Ελλάδα, Ιρλανδία και ΗΒ αναφέρονται στο 2018 \nΟ δείκτης δείχνει τη διαφορά στις μέσες μεικτές ωριαίες απολαβές μεταξύ ανδρών και γυναικών ως ποσοστό των μέσων μεικτών ωριαίων απολαβών των ανδρών.")
+
+ggsave("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/January/Week 4/plot_gr_ggap.png",plot_gr_ggap,  width = 33, height = 25, units = 'cm')
+```
+
+
+```{r Data from Agranov et al}
+agranov_data = read_dta("G:/My Drive/Bandwagon - Underdog/jvx023_supplement_files/Agranov_etal_Data/data/data.dta")
+
+```
+
+```{r Data HEPI}
+Sys.getlocale()
+Sys.setlocale(category = "LC_ALL", locale = "Greek")
+
+Capitals= c('Βουκουρέστι', 'Αθήνα','Πράγα', 'Βρυξέλλες', 'Βαρσοβία', 'Βερολίνο','Λονδίνο', 'Μαδρίτη','Ρίγα', 'Κοπενγχάγη', 'Λευκωσία', 'Άμστερνταμ', 'Λισαβώνα', 'Ταλίν', 'Ρώμη', 'Βιέννη', 'Δουβλίνο', 'Σόφια', 'Βίλνιους', 'Ζάγκρεμπ', 'Μπρατισλάβα', 'Ποντγκόριτσα', 'Παρίσι', 'Λουμπλιάνα', 'Στοκχόλμη', 'Λουξεμβούργο', 'Βουδαπέστη', 'Βελιγράδι', 'Ελσίνκι', 'Όσλο', 'Βαλέτα', 'Βέρνη', 'ΕΕ-27')
+
+Prices_el = c(51.04, 38.09, 36.05, 33.20, 32.92, 32.79, 32.65, 31.23, 30.83, 29.83, 29.62, 29.61, 27.47, 27.38, 26.31, 25.62, 23.73, 22.89, 22.29, 21.46, 21.11, 20.90, 20.40, 19.06, 18.44, 17.07, 16.88, 15.25, 15.03, 14.26, 14.05, 13.27, 26.47)
+
+Prices_gas = c(19.99, 14.31, 12.10,10.24,7.55,9.00,7.34,9.53,6.91,14.51,0,16.20,9.16,7.26,13.03,10.93,6.40,18.38,8.43,7.18,5.53,0,9.61,7.59,18.08,6.96,4.56,6.13,0,0,0,8.94,10.56)
+
+data_hepi = data.frame(Capitals, Prices_el, Prices_gas) %>% 
+pivot_longer("Prices_el":"Prices_gas", names_to = 'Energy', values_to = "Prices") %>% 
+mutate(Energy = case_when(Energy == 'Prices_el' ~ 'Ηλεκτρικό ρεύμα', 
+                          Energy == 'Prices_gas'~'Φυσικό αέριο', 
+                          TRUE~ 'NA'))
+
+
+data_hepi$Capitals = factor(data_hepi$Capitals, levels=c('Βέρνη', 'Βαλέτα','Όσλο','Ελσίνκι',  'Βελιγράδι','Βουδαπέστη','Λουξεμβούργο','Στοκχόλμη', 'Λουμπλιάνα', 'Παρίσι', 'Ποντγκόριτσα', 'Μπρατισλάβα', 'Ζάγκρεμπ', 'Βίλνιους', 'Σόφια', 'Δουβλίνο', 'Βιέννη', 'Ρώμη', 'ΕΕ-27','Ταλίν','Λισαβώνα', 'Άμστερνταμ', 'Λευκωσία','Κοπενγχάγη','Ρίγα','Μαδρίτη','Λονδίνο','Βερολίνο', 'Βαρσοβία','Βρυξέλλες', 'Πράγα', 'Αθήνα','Βουκουρέστι'))
+                                                       
+data_hepi$Energy = factor(data_hepi$Energy, levels=c('Ηλεκτρικό ρεύμα', 'Φυσικό αέριο')) 
+  
+plot_gr_hepi = ggplot(data_hepi, aes(Capitals, Prices, fill = factor(Energy)))+
+    theme_bw()+
+    coord_flip()+
+    geom_bar(stat = "identity",position = "dodge", width = 0.8)+
+    theme_solarized() + 
+    labs(title='Οικιακές τιμές ηλεκτρικού ρεύματος & φυσικού αερίου \nπροσαρμοσμένες στην αγοραστική δύναμη (PPS)', x='', y='σεντ (Ευρώ) ανά kWh') +
+  theme(axis.title = element_text(), 
+        # panel.border = element_blank(),
+        strip.text.x = element_text(size = 12, angle = 0, face = "bold"),
+        axis.text.y = element_text(color = "grey20", size = 12, angle = 0),
+        axis.text.x = element_text(color = "grey20", size = 12, angle = 0),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 15),
+        legend.position = 'top',
+        plot.title = element_text(size = 17, face = 'bold'),
+        # plot.caption = element_text(size = 10, hjust = 0),
+        plot.caption = element_text(size = 8.5, hjust = 0))+
+  scale_x_discrete(labels=c("Αθήνα"=expression(bold(Αθήνα)), parse=TRUE))+
+  labs(caption="Γράφημα: EΛΙΑΜΕΠ, Πηγή: Vassa ET, E-control, Hungarian Energy and Public Utility Regulatory Authority \nΣτις τιμές προστίθεται ο ενεργειακός φόρος")
+
+ggsave("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/February/Week 1/Energy prices/plot_gr_hepi.png",plot_gr_hepi,  width = 33, height = 25, units = 'cm')
+
+
+######################## English Graph. 
+data_hepi = data_hepi %>% 
+            mutate(Capitals_eng = case_when(Capitals == 'Βέρνη'~'Bern',
+                                            Capitals == 'Βαλέτα'~'Valletta',
+                                            Capitals == 'Όσλο'~'Oslo',
+                                            Capitals == 'Ελσίνκι'~'Helsinki',
+                                            Capitals == 'Βελιγράδι'~ 'Belgrade', 
+                                            Capitals == 'Βουδαπέστη'~ 'Budapest',
+                                            Capitals == 'Λουξεμβούργο'~ 'Luxembourg',
+                                            Capitals == 'Στοκχόλμη'~ 'Stockholm',
+                                            Capitals == 'Λουμπλιάνα'~ 'Ljubljana',
+                                            Capitals == 'Παρίσι'~'Paris',
+                                            Capitals == 'Ποντγκόριτσα'~'Podgorica',
+                                            Capitals == 'Μπρατισλάβα'~'Bratislava',
+                                            Capitals == 'Ζάγκρεμπ'~'Zagreb',
+                                            Capitals == 'Βίλνιους'~'Vilnius',
+                                            Capitals == 'Σόφια'~'Sofia',
+                                            Capitals == 'Δουβλίνο'~'Dublin',
+                                            Capitals == 'Βιέννη'~'Vienna',
+                                            Capitals == 'Ρώμη'~'Rome',
+                                            Capitals == 'ΕΕ-27'~'EU-27',
+                                            Capitals == 'Ταλίν'~'Tallinn',
+                                            Capitals == 'Λισαβώνα'~'Lisbon',
+                                            Capitals == 'Άμστερνταμ'~'Amsterdam',
+                                            Capitals == 'Λευκωσία'~'Nicosia',
+                                            Capitals == 'Κοπενγχάγη'~'Copenhagen',
+                                            Capitals == 'Ρίγα'~'Riga',
+                                            Capitals == 'Μαδρίτη'~'Madrid',
+                                            Capitals == 'Λονδίνο'~'London',
+                                            Capitals == 'Βερολίνο'~'Berlin',
+                                            Capitals == 'Βαρσοβία'~'Warsaw',
+                                            Capitals == 'Βρυξέλλες'~'Brussels',
+                                            Capitals == 'Πράγα'~'Prague',
+                                            Capitals == 'Αθήνα'~'Athens',
+                                            Capitals == 'Βουκουρέστι'~'Bucharest', 
+                                            TRUE ~ 'NA')) %>% 
+  mutate(Energy_eng = case_when(Energy == 'Ηλεκτρικό ρεύμα'~'Electricity', 
+                                Energy == 'Φυσικό αέριο'~'Natural gas', 
+                                TRUE ~ 'NA'))
+data_hepi$Capitals_eng = factor(data_hepi$Capitals_eng, levels=c('Bern', 'Valletta','Oslo','Helsinki',  'Belgrade','Budapest','Luxembourg','Stockholm', 'Ljubljana', 'Paris', 'Podgorica', 'Bratislava', 'Zagreb', 'Vilnius', 'Sofia', 'Dublin', 'Vienna', 'Rome', 'EU-27','Tallinn','Lisbon', 'Amsterdam', 'Nicosia','Copenhagen','Riga','Madrid','London','Berlin', 'Warsaw','Brussels', 'Prague', 'Athens','Bucharest'))
+
+data_hepi$Energy_eng = factor(data_hepi$Energy_eng, levels=c('Electricity', 'Natural gas')) 
+  
+plot_eng_hepi = ggplot(data_hepi, aes(Capitals_eng, Prices, fill = factor(Energy_eng)))+
+    theme_bw()+
+    coord_flip()+
+    geom_bar(stat = "identity",position = "dodge", width = 0.8)+
+    theme_solarized() + 
+    labs(title='Residential electricity and natural gas prices \nadjusted to purchasing power standards (PPS)', x='', y='cents (Euro) per kWh') +
+  theme(axis.title = element_text(), 
+        # panel.border = element_blank(),
+        strip.text.x = element_text(size = 12, angle = 0, face = "bold"),
+        axis.text.y = element_text(color = "grey20", size = 12, angle = 0),
+        axis.text.x = element_text(color = "grey20", size = 12, angle = 0),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 15),
+        legend.position = 'top',
+        plot.title = element_text(size = 17, face = 'bold'),
+        # plot.caption = element_text(size = 10, hjust = 0),
+        plot.caption = element_text(size = 8.5, hjust = 0))+
+  scale_x_discrete(labels=c("Athens"=expression(bold(Athens)), parse=TRUE))+
+  labs(caption="Graph: ELIAMEP, Source: Vassa ET, E-control, Hungarian Energy and Public Utility Regulatory Authority \nPrices include energy and VAT taxes")
+
+ggsave("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/February/Week 1/Energy prices/plot_eng_hepi.png",plot_eng_hepi,  width = 33, height = 25, units = 'cm')
+
+```
+
+```{r Dianeosis vaccines}
+trust_levels= c('1 (= No trust)', '2','3', '4', '5 (=Full trust)')
+
+shares_trust = c(11.6, 7.9, 17.3, 28.2, 34.5)
+
+data_trust_dianeosis = data.frame(trust_levels, shares_trust) 
+
+plot_eng_trust = ggplot(data_trust_dianeosis, aes(trust_levels, shares_trust))+
+    theme_bw()+
+    coord_flip()+
+    geom_bar(stat = "identity",position = "stack", width = 0.8, fill = 'skyblue')+
+    geom_text(aes(label=shares_trust),hjust = -.2,  vjust=0.5)+
+    theme_solarized() + 
+    labs(title='How much do you trust the vaccines?', x='', y='%') +
+  theme(axis.title = element_text(), 
+        # panel.border = element_blank(),
+        strip.text.x = element_text(size = 12, angle = 0, face = "bold"),
+        axis.text.y = element_text(color = "grey20", size = 12, angle = 0, face = "bold"),
+        axis.text.x = element_text(color = "grey20", size = 12, angle = 0, face = "bold"),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 15),
+        legend.position = 'top',
+        plot.title = element_text(size = 17, face = 'bold'),
+        # plot.caption = element_text(size = 10, hjust = 0),
+        plot.caption = element_text(size = 8.5, hjust = 0))+
+  scale_x_discrete(labels=c("Athens"=expression(bold(Athens)), parse=TRUE))+
+  labs(caption="Source: dianeosis, November 2021")
+
+### Debt to GDP 
+years = c('2016','2017','2018','2019','2020','2021*')
+debt_gdp = c(183.41,182.38,189.89,184.91,211.22,206.69)
+
+data_debt = data.frame(years, debt_gdp) 
+plot_eng_debt = ggplot(data_debt, aes(years, debt_gdp ))+
+    theme_bw()+
+    # coord_flip()+
+    geom_bar(stat = "identity",position = "stack", width = 0.8, fill = 'skyblue')+
+    geom_text(aes(label=debt_gdp),vjust = -1, hjust = 0.5)+
+    theme_solarized() + 
+    labs(title='Debt to GDP ratio for Greece', x='', y='%') +
+  theme(axis.title = element_text(), 
+        # panel.border = element_blank(),
+        strip.text.x = element_text(size = 12, angle = 0, face = "bold"),
+        axis.text.y = element_text(color = "grey20", size = 12, angle = 0, face = "bold"),
+        axis.text.x = element_text(color = "grey20", size = 12, angle = 0, face = "bold"),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 15),
+        legend.position = 'top',
+        plot.title = element_text(size = 17, face = 'bold'),
+        # plot.caption = element_text(size = 10, hjust = 0),
+        plot.caption = element_text(size = 10, hjust = 0))+
+  scale_x_discrete(labels=c("Athens"=expression(bold(Athens)), parse=TRUE))+
+  labs(caption="Source: National Statistical Office")
+
+years = c(2011,2012,2013,2014,2015,2016,2017,2018,2019,2020)
+EU_27 = c(10.0,11.0,11.6,11.0,10.1,9.2,8.2,7.4,6.8,7.2)
+GRC = c(18.1,24.8,27.8,26.6,25.0,23.9,21.8,19.7,17.9,17.6)
+months =c('Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec')
+# EU_27 = c(7.5,7.2,6.9,6.7,6.8,6.6,6.6,6.3,6.3)
+# GRC = c(17.4,15.6,14.4,13.5,13.3,12.3,13.2,13.8,13.1)
+
+data_yr =  data.frame(years, EU_27, GRC) %>% 
+  pivot_longer('EU_27':'GRC',names_to = 'countries', values_to = 'rates')
+
+plot_eng_ump_an = ggplot(data_yr, aes(x = years, y = rates)) + 
+  geom_line(aes(color = countries, linetype = countries), size=1.5) + 
+  scale_color_manual(values = c("darkred", "steelblue"))+
+  scale_x_continuous(breaks = data_yr$years)+
+  theme_solarized() + 
+    labs(title='Annual unemployment rate', x='', y='%') +
+  theme(axis.title = element_text(), 
+        # panel.border = element_blank(),
+        strip.text.x = element_text(size = 12, angle = 0, face = "bold"),
+        axis.text.y = element_text(color = "grey20", size = 12, angle = 0, face = "bold"),
+        axis.text.x = element_text(color = "grey20", size = 12, angle = 0, face = "bold"),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 15),
+        legend.position = 'top',
+        plot.title = element_text(size = 17, face = 'bold'),
+        # plot.caption = element_text(size = 10, hjust = 0),
+        plot.caption = element_text(size = 10, hjust = 0))+
+  # scale_x_discrete(labels=c("Athens"=expression(bold(Athens)), parse=TRUE))+
+  labs(caption="Source: Eurostat")
+EU_27 = c(7.5,7.2,6.9,6.7,6.8,6.6,6.6,6.3,6.3)
+GRC = c(17.4,15.6,14.4,13.5,13.3,12.3,13.2,13.8,13.1)
+data_21 = data.frame(months, EU_27, GRC)%>% 
+  pivot_longer('EU_27':'GRC',names_to = 'countries', values_to = 'rates')
+
+data_21$months = factor(data_21$months, levels=c('Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec')) 
+
+
+plot_eng_ump = ggplot(data_21, aes(months, rates, fill = countries ))+
+    theme_bw()+
+    # coord_flip()+
+    geom_bar(stat = "identity",position = "dodge", width = 0.8)+
+    # geom_text(aes(label=rates), hjust = -0.5, vjust = 1)+
+    theme_solarized() + 
+    labs(title='Monthly unemployment rate in 2021', x='2021', y='%') +
+  theme(axis.title = element_text(), 
+        # panel.border = element_blank(),
+        strip.text.x = element_text(size = 12, angle = 0, face = "bold"),
+        axis.text.y = element_text(color = "grey20", size = 12, angle = 0, face = "bold"),
+        axis.text.x = element_text(color = "grey20", size = 12, angle = 0, face = "bold"),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 15),
+        legend.position = 'top',
+        plot.title = element_text(size = 17, face = 'bold'),
+        # plot.caption = element_text(size = 10, hjust = 0),
+        plot.caption = element_text(size = 10, hjust = 0))+
+  scale_x_discrete(labels=c("Athens"=expression(bold(Athens)), parse=TRUE))+
+  labs(caption="Source: Eurostat")
+
+grid.arrange(plot_eng_ump_an, plot_eng_ump)
+```
+
+```{r Desi index Greece}
+Sys.getlocale()
+Sys.setlocale(category = "LC_ALL", locale = "Greek")
+Countries= c('DK','FI','SE', 'NL', 'IE', 'MT', 'EE', 'LU', 'ES', 'AT', 'DE', 'BE', 'SI', 'LT', 'EU', 'FR', 'PT', 'LV', 'CZ', 'HR', 'IT', 'CY', 'SK', 'HU', 'PL', 'EL', 'BG', 'RO')
+
+Human_capital = c(15.11,17.94,16.03,15.3,13.3,12.15,14.39,13.9,12.1,13.1,13.6,13.3,11.8,11.5,11.7,11.6,10,9.7,11.5,11.6,8.8,9.9,11,9.9,9.2,10.47,7.8,7.9)
+
+Connectivity = c(18.7, 13.1, 14.9, 17.1, 14.1, 13.61,11.71, 15.2, 15.6, 13.5, 14.6, 11.2, 13.2, 10.5, 12.6, 11.9, 13, 12.8, 11.3, 11.15,10.6, 10.5, 11.5, 12.6, 11.1, 7.125, 9.4, 13.1)
+
+Integration_of_Digital_Technology = c(14.5, 14.6, 14.09, 13, 12, 12.79,9.98,  9.7, 9.2, 10.3, 9.1, 12.2, 10.5, 9.9, 9.4, 8.4, 9.3, 6.79, 9.7, 10.04, 10.3, 7.8, 7.3, 5.7, 6.8, 9.425, 5.3, 5.8)
+
+Digital_Public_Services = c(21.7, 21.8, 21.05, 19.7, 20.7, 21.05,23.32, 20.1, 20.5, 19.9, 16.8, 16.7, 17.1, 19.7, 17.1, 18.4, 17.00, 19.91, 14.7, 13.1, 15.8, 15.3, 13.4, 12.6, 13.6, 10.25, 13.9, 5.5)
+
+desi_data = data.frame(Countries, Digital_Public_Services, Integration_of_Digital_Technology, Connectivity,Human_capital) 
+
+desi_data$Countries = factor(desi_data$Countries, levels=c('DK','FI','SE', 'NL', 'IE', 'MT','EE', 'LU', 'ES', 'AT', 'DE', 'BE', 'SI', 'LT', 'EU', 'FR', 'PT', 'LV', 'CZ', 'HR', 'IT', 'CY', 'SK', 'HU', 'PL', 'EL', 'BG', 'RO'))
+
+desi_data = desi_data %>% 
+            pivot_longer('Digital_Public_Services':'Human_capital',names_to = 'Components', values_to = 'Rank') %>% ungroup() %>% 
+  mutate(Components = case_when(
+            Components == 'Digital_Public_Services' ~ 'Digital public services', 
+            Components == 'Human_capital'~'Human capital',
+            Components == 'Integration_of_Digital_Technology'~'Integration of digital technology', 
+            TRUE ~ 'Connectivity'))
+
+
+plot_eng_desi = ggplot(desi_data, aes(Countries, Rank, fill = Components))+
+    theme_bw()+
+    coord_flip()+
+    geom_bar(stat = "identity",position = "stack", width = 0.8)+
+    # geom_text(aes(label=rates), hjust = -0.5, vjust = 1)+
+    theme_solarized() + 
+    labs(title='Digital Economic and Society Index (DESI) 2021', x='', y='Score') +
+  theme(axis.title = element_text(), 
+        # panel.border = element_blank(),
+        strip.text.x = element_text(size = 12, angle = 0, face = "bold"),
+        axis.text.y = element_text(color = "grey20", size = 12, angle = 0, face = "bold"),
+        axis.text.x = element_text(color = "grey20", size = 12, angle = 0, face = "bold"),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 13),
+        legend.position = 'top',
+        plot.title = element_text(size = 17, face = 'bold'),
+        # plot.caption = element_text(size = 10, hjust = 0),
+        plot.caption = element_text(size = 10, hjust = 0))+
+  scale_x_discrete(labels=c("EL"=expression(bold(EL)), parse=TRUE))+
+  labs(caption="Graph: ELIAMEP, Source: DESI report 2021")
+
+ggsave("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/February/Week 2/plot_eng_desi.png",plot_eng_desi,  width = 33, height = 25, units = 'cm')
+
+
+desi_data = desi_data %>% 
+  mutate(Components_gr = case_when(
+            Components == 'Digital public services' ~ 'Ψηφιακές δημόσιες υπηρεσίες', 
+            Components == 'Human capital'~'Ανθρώπινο κεφάλαιο',
+            Components == 'Integration of digital technology'~'Ενσωμάτωση ψηφιακής τεχνολογίας', 
+            TRUE ~ 'Συνδεσιμότητα')) %>% 
+  mutate(countries_gr = case_when(
+    Countries == 'DK'~ 'Δανία',
+    Countries == 'FI' ~ 'Φινλανδία',
+    Countries == 'SE' ~ 'Σουηδία',
+    Countries == 'NL' ~ 'Ολλανδία',
+    Countries == 'IE' ~ 'Ιρλανδία',
+    Countries == 'MT' ~ 'Μάλτα',
+    Countries == 'EE' ~ 'Εσθονία',
+    Countries == 'LU' ~ 'Λουξεμβούργο',
+    Countries == 'ES' ~ 'Ισπανία',
+    Countries == 'AT' ~ 'Αυστρία', 
+    Countries == 'DE' ~ 'Γερμανία',
+    Countries == 'BE' ~ 'Βέλγιο',
+    Countries == 'SI' ~ 'Σλοβενία',
+    Countries == 'LT' ~ 'Λιθουανία',
+    Countries == 'EU' ~ 'ΕΕ',
+    Countries == 'FR' ~ 'Γαλλία',
+    Countries == 'PT' ~ 'Πορτογαλία',
+    Countries == 'LV' ~ 'Λετονία',
+    Countries == 'CZ' ~ 'Τσεχία',
+    Countries == 'HR' ~ 'Κροατία',
+    Countries == 'IT' ~ 'Ιταλία',
+    Countries == 'CY' ~ 'Κύπρος',
+    Countries == 'SK' ~ 'Σλοβακία',
+    Countries == 'HU' ~ 'Ουγγαρία',
+    Countries == 'PL' ~ 'Πολωνία',
+    Countries == 'EL' ~ 'Ελλάδα',
+    Countries == 'BG' ~ 'Βουλγαρία',
+    Countries == 'RO' ~ 'Ρουμανία', 
+    TRUE ~ 'NA'))
+  
+desi_data$countries_gr = factor(desi_data$countries_gr, levels=c('Δανία','Φινλανδία','Σουηδία','Ολλανδία','Ιρλανδία','Μάλτα','Εσθονία','Λουξεμβούργο','Ισπανία','Αυστρία','Γερμανία','Βέλγιο','Σλοβενία','Λιθουανία','ΕΕ','Γαλλία','Πορτογαλία','Λετονία','Τσεχία', 'Κροατία',  'Ιταλία',  'Κύπρος',  'Σλοβακία',  'Ουγγαρία',   'Πολωνία',  'Ελλάδα',   'Βουλγαρία',   'Ρουμανία'))
+
+plot_gr_desi = ggplot(desi_data, aes(countries_gr, Rank, fill = Components_gr))+
+    theme_bw()+
+    coord_flip()+
+    geom_bar(stat = "identity",position = "stack", width = 0.8)+
+    # geom_text(aes(label=rates), hjust = -0.5, vjust = 1)+
+    theme_solarized() + 
+    labs(title='Δείκτης Ψηφιακής Οικονομίας και Κοινωνίας (DESI) 2021', x='', y='Βαθμολογία') +
+  theme(axis.title = element_text(), 
+        # panel.border = element_blank(),
+        strip.text.x = element_text(size = 12, angle = 0, face = "bold"),
+        axis.text.y = element_text(color = "grey20", size = 12, angle = 0, face = "bold"),
+        axis.text.x = element_text(color = "grey20", size = 12, angle = 0, face = "bold"),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 11),
+        legend.position = 'top',
+        plot.title = element_text(size = 17, face = 'bold'),
+        # plot.caption = element_text(size = 10, hjust = 0),
+        plot.caption = element_text(size = 10, hjust = 0))+
+  scale_x_discrete(labels=c("Ελλάδα"=expression(bold(Ελλάδα)), parse=TRUE))+
+  labs(caption="Γράφημα: ΕΛΙΑΜΕΠ, Πηγή: DESI report 2021")
+
+ggsave("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/February/Week 2/plot_gr_desi.png",plot_gr_desi,  width = 33, height = 25, units = 'cm')
+
+
+```
+
+```{r, Fiscal Measures}
+
+Sys.getlocale()
+Sys.setlocale(category = "LC_ALL", locale = "Greek")
+
+Countries = c('Εσθονία','Λετονία','Αυστρία',"ΗΒ",'Γερμανία','Τσεχία','Σλοβακία','Ουγγαρία','Φινλανδία','Γαλλία','Ολλανδία','Βουλγαρία','Δανία','Λιθουανία','Ισπανία','Σουηδία','Μάλτα','Κροατία','Ιρλανδία','Πορτογαλία','Ελλάδα','Κύπρος','Πολωνία','Σλοβενία','Βέλγιο','Ιταλία','Ρουμανία','Λουξεμβούργο')
+
+Above = c(5.8, 10.6, 15.2, 19.3, 15.3, 9.2,  5.9, 11.5, 4.8, 9.6,  10.3, 5.3, 3.4,  7.9, 8.4,  4.2, 10.7, 
+          4.6, 11.5, 6.0, 17.5, 8.3, 6.5, 9.4, 8.2, 10.9, 3.4, 4.2)
+Below = c(5.1, 2.0,  2.8,  16.7, 27.8, 15.5, 1.7, 4.2,  7.4, 15.2, 4.3,  3.9, 15.6, 2.8, 14.4, 5.3, 6.0, 
+          3.6, 2.7,  5.7, 3.7, 9.3, 4.8, 6.6, 11.9, 35.3, 4.2, 5.9)
+
+
+fiscal_measures = data.frame(Countries, Above, Below) %>% 
+                  pivot_longer('Above':'Below',names_to = 'Measures', values_to = 'Percentage_GDP') %>% 
+                  mutate(Measures_gr = case_when(Measures == 'Above' ~ 'Ενισχυτικά μέτρα (Above-the-Line)', 
+                                              Measures == 'Below' ~ 'Εγγυητικά μέτρα (Below-the-Line & Contingent Liabilities)', 
+                                              TRUE ~ 'NA')) %>% 
+                  mutate(countries_eng = case_when(Countries == 'Δανία' ~ 'Denmark',
+                                                  Countries == 'Φινλανδία' ~ 'Finland',
+                                                  Countries == 'Σουηδία' ~ 'Sweden',
+                                                  Countries == 'Ολλανδία' ~ 'Netherlands',
+                                                  Countries == 'Ιρλανδία' ~ 'Ireland',
+                                                  Countries == 'Μάλτα' ~ 'Malta',
+                                                  Countries == 'Εσθονία' ~ 'Estonia',
+                                                  Countries == 'Λουξεμβούργο' ~ 'Luxembourg',
+                                                  Countries == 'Ισπανία' ~ 'Spain',
+                                                  Countries == 'Αυστρία' ~ 'Austria', 
+                                                  Countries == 'Γερμανία' ~ 'Germany',
+                                                  Countries == 'Βέλγιο' ~ 'Belgium',
+                                                  Countries == 'Σλοβενία' ~ 'Slovenia',
+                                                  Countries == 'Λιθουανία' ~ 'Lithuania',
+                                                  Countries == 'ΗΒ' ~ 'UK',
+                                                  Countries == 'Γαλλία' ~ 'France',
+                                                  Countries == 'Πορτογαλία' ~ 'Portugal',
+                                                  Countries == 'Λετονία' ~ 'Latvia',
+                                                  Countries == 'Τσεχία' ~ 'Czechia',
+                                                  Countries == 'Κροατία' ~ 'Croatia',
+                                                  Countries == 'Ιταλία' ~ 'Italy',
+                                                  Countries == 'Κύπρος' ~ 'Cyprus',
+                                                  Countries == 'Σλοβακία' ~ 'Slovakia',
+                                                  Countries == 'Ουγγαρία' ~ 'Hungary',
+                                                  Countries == 'Πολωνία' ~ 'Poland',
+                                                  Countries == 'Ελλάδα' ~ 'Greece',
+                                                  Countries == 'Βουλγαρία'~ 'Bulgaria',
+                                                  Countries == 'Ρουμανία' ~ 'Romania',
+                                                  TRUE ~ 'NA')) %>% 
+  mutate(Measures_eng = case_when(Measures == 'Above' ~ 'Above-the-Line', 
+                                  Measures == 'Below' ~ 'Below-the-Line & Contingent Liabilities', 
+                                  TRUE ~ 'NA'))
+
+fiscal_measures$Countries = factor(fiscal_measures$Countries, levels=c(
+'Δανία',
+'Ρουμανία',
+'Σουηδία',
+'Λουξεμβούργο',
+'Κροατία',
+'Φινλανδία',
+'Βουλγαρία',
+'Εσθονία',
+'Σλοβακία',
+'Πορτογαλία',
+'Πολωνία',
+'Λιθουανία',
+'Βέλγιο',
+'Κύπρος',
+'Ισπανία',
+'Τσεχία',
+'Σλοβενία',
+'Γαλλία',
+'Ολλανδία',
+'Λετονία',
+'Μάλτα',
+'Ιταλία',
+'Ουγγαρία',
+'Ιρλανδία',
+'Αυστρία',
+'Γερμανία',
+'Ελλάδα',
+'ΗΒ'
+))
+
+fiscal_measures$countries_eng = factor(fiscal_measures$countries_eng, levels=c(
+'Denmark',
+'Romania',
+'Sweden',
+'Luxembourg',
+'Croatia',
+'Finland',
+'Bulgaria',
+'Estonia',
+'Slovakia',
+'Portugal',
+'Poland',
+'Lithuania',
+'Belgium',
+'Cyprus',
+'Spain',
+'Czechia',
+'Slovenia',
+'France',
+'Netherlands',
+'Latvia',
+'Malta',
+'Italy',
+'Hungary',
+'Ireland',
+'Austria',
+'Germany',
+'Greece',
+'UK'
+))
+
+
+plot_gr_fiscal = ggplot(fiscal_measures, aes(Countries, Percentage_GDP, fill = Measures_gr))+
+    theme_bw()+
+    coord_flip()+
+    geom_bar(stat = "identity",position = "dodge", width = 0.8)+
+    # geom_text(aes(label=rates), hjust = -0.5, vjust = 1)+
+    theme_solarized() + 
+    labs(title='Δημοσιονομικά μέτρα ως απάντηση στην πανδημία, Ιανουάριος 2020 - Σεπτέμβριος 2021 \n(ποσοστό επί του ΑΕΠ, 2020)', x='', y='%') +
+  theme(axis.title = element_text(), 
+        # panel.border = element_blank(),
+        strip.text.x = element_text(size = 12, angle = 0, face = "bold"),
+        axis.text.y = element_text(color = "grey20", size = 14, angle = 0, face = "bold"),
+        axis.text.x = element_text(color = "grey20", size = 14, angle = 0, face = "bold"),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 14),
+        legend.position = 'top',
+        plot.title = element_text(size = 17, face = 'bold'),
+        # plot.caption = element_text(size = 10, hjust = 0),
+        plot.caption = element_text(size = 10, hjust = 0))+
+  scale_x_discrete(labels=c("Ελλάδα"=expression(bold(Ελλάδα)), parse=TRUE))+
+  labs(caption="Γράφημα: ΕΛΙΑΜΕΠ, \nΠηγή: Fiscal Monitor Database of Country Fiscal Measures in Response to the Covid -19 Pandemic (IMF)")
+
+ggsave("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/February/Week 3/plot_gr_fiscal.png",plot_gr_fiscal,  width = 33, height = 25, units = 'cm')
+
+
+plot_eng_fiscal = ggplot(fiscal_measures, aes(countries_eng, Percentage_GDP, fill = Measures_eng))+
+    theme_bw()+
+    coord_flip()+
+    geom_bar(stat = "identity",position = "dodge", width = 0.8)+
+    # geom_text(aes(label=rates), hjust = -0.5, vjust = 1)+
+    theme_solarized() + 
+    labs(title='Fiscal measures in response to COVID-19, January 2020 - September 2021 \n(percentage of GDP, 2020)', x='', y='%') +
+  theme(axis.title = element_text(), 
+        # panel.border = element_blank(),
+        strip.text.x = element_text(size = 12, angle = 0, face = "bold"),
+        axis.text.y = element_text(color = "grey20", size = 14, angle = 0, face = "bold"),
+        axis.text.x = element_text(color = "grey20", size = 14, angle = 0, face = "bold"),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 14),
+        legend.position = 'top',
+        plot.title = element_text(size = 17, face = 'bold'),
+        # plot.caption = element_text(size = 10, hjust = 0),
+        plot.caption = element_text(size = 10, hjust = 0))+
+  scale_x_discrete(labels=c("Greece"=expression(bold(Greece)), parse=TRUE))+
+  labs(caption="Graph: ELIAMEP, \nSource: Fiscal Monitor Database of Country Fiscal Measures in Response to the Covid -19 Pandemic (IMF)")
+
+ggsave("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/February/Week 3/plot_eng_fiscal.png",plot_eng_fiscal,  width = 33, height = 25, units = 'cm')
+
+
+```
+
+
+
+
+```{r Informal Caregiver}
+Sys.getlocale()
+Sys.setlocale(category = "LC_ALL", locale = "Greek")
+
+Countries = c('Εσθονία','Λετονία','Αυστρία','Γερμανία','Τσεχία','Σλοβακία','Ουγγαρία','Φινλανδία','Γαλλία','Ολλανδία','Βουλγαρία','Δανία','Λιθουανία','Ισπανία','Σουηδία','Μάλτα','Κροατία','Ιρλανδία','Πορτογαλία','Ελλάδα','Κύπρος','Πολωνία','Σλοβενία','Βέλγιο','Ιταλία','Ρουμανία','Λουξεμβούργο', 'ΕΕ')
+
+Ratio_tot_pop = c(15.0, 17.0, 10.0, 23.0, 9, 19.0, 18.0, 13, 16, 18.0, 10, 16, 16, 16, 12, 26, 16, 10, 13, 34, 15, 20, 15, 30, 17, 9, 21, 17)
+
+Ratio_Female = c(60.0, 56.6, 57.6, 52.9, 64.8, 61.8, 55.5, 56.5, 57.5, 56.8, 60.9, 57.5, 65.7, 62.2, 57.4, 60.8, 58.0, 60.4, 58.1, 63.5, 63.1, 65.0, 59.3, 61.8, 59.7, 52.1, 57.6, 58.8)
+
+
+informal_care = data.frame(Countries,Ratio_tot_pop, Ratio_Female) %>%
+                mutate(Ratio_Male =  100 - Ratio_Female) %>% 
+                group_by(Countries) %>% 
+                mutate(Num_Female = (Ratio_tot_pop*Ratio_Female)/100) %>% 
+                mutate(Num_Male = (Ratio_tot_pop*Ratio_Male)/100) %>% 
+                select(Countries, Num_Female, Num_Male) %>% 
+                pivot_longer('Num_Female':'Num_Male',names_to = 'Ratios', values_to = 'Values') %>% 
+                mutate(Ratios = case_when(Ratios == 'Num_Female' ~ 'Γυναίκες', Ratios == 'Num_Male' ~ 'Άνδρες', 
+                                  TRUE ~ 'NA')) %>% 
+                group_by(Countries) %>% 
+                mutate(tot_num = sum(Values)) %>% 
+                rowwise() %>% 
+                mutate(ratio = (Values/tot_num)*100) %>% ungroup() %>% 
+   mutate(countries_eng = case_when(Countries == 'Δανία' ~ 'Denmark',
+                                                  Countries == 'Φινλανδία' ~ 'Finland',
+                                                  Countries == 'Σουηδία' ~ 'Sweden',
+                                                  Countries == 'Ολλανδία' ~ 'Netherlands',
+                                                  Countries == 'Ιρλανδία' ~ 'Ireland',
+                                                  Countries == 'Μάλτα' ~ 'Malta',
+                                                  Countries == 'Εσθονία' ~ 'Estonia',
+                                                  Countries == 'Λουξεμβούργο' ~ 'Luxembourg',
+                                                  Countries == 'Ισπανία' ~ 'Spain',
+                                                  Countries == 'Αυστρία' ~ 'Austria', 
+                                                  Countries == 'Γερμανία' ~ 'Germany',
+                                                  Countries == 'Βέλγιο' ~ 'Belgium',
+                                                  Countries == 'Σλοβενία' ~ 'Slovenia',
+                                                  Countries == 'Λιθουανία' ~ 'Lithuania',
+                                                  Countries == 'ΗΒ' ~ 'UK',
+                                                  Countries == 'Γαλλία' ~ 'France',
+                                                  Countries == 'Πορτογαλία' ~ 'Portugal',
+                                                  Countries == 'Λετονία' ~ 'Latvia',
+                                                  Countries == 'Τσεχία' ~ 'Czechia',
+                                                  Countries == 'Κροατία' ~ 'Croatia',
+                                                  Countries == 'Ιταλία' ~ 'Italy',
+                                                  Countries == 'Κύπρος' ~ 'Cyprus',
+                                                  Countries == 'Σλοβακία' ~ 'Slovakia',
+                                                  Countries == 'Ουγγαρία' ~ 'Hungary',
+                                                  Countries == 'Πολωνία' ~ 'Poland',
+                                                  Countries == 'Ελλάδα' ~ 'Greece',
+                                                  Countries == 'Βουλγαρία'~ 'Bulgaria',
+                                                  Countries == 'Ρουμανία' ~ 'Romania',
+                                                  Countries == 'ΕΕ' ~ 'EU',
+                                                  TRUE ~ 'NA')) %>% 
+                mutate(Ratios_eng = case_when(Ratios == 'Άνδρες' ~ 'Male', 
+                                              Ratios == 'Γυναίκες' ~ 'Female', 
+                                              TRUE ~ 'NA'))
+informal_care$Countries = factor(informal_care$Countries, levels=c(
+'Ρουμανία',
+'Τσεχία',
+'Αυστρία',
+'Βουλγαρία',
+'Ιρλανδία',
+'Σουηδία',
+'Φινλανδία',
+'Πορτογαλία',
+'Σλοβενία',
+'Κύπρος',
+'Εσθονία',
+'Γαλλία',
+'Κροατία',
+'Ισπανία',
+'Λιθουανία',
+'Δανία',
+'Λετονία',
+'Ιταλία',
+'ΕΕ', 
+'Ουγγαρία',
+'Ολλανδία',
+'ΗΒ',
+'Σλοβακία',
+'Πολωνία',
+'Λουξεμβούργο',
+'Γερμανία',
+'Μάλτα',
+'Βέλγιο',
+'Ελλάδα'
+))
+
+
+
+plot_gr_informalcare = ggplot(informal_care, aes(Countries, Values, fill = Ratios, labels = ratio))+
+    theme_bw()+
+    coord_flip()+
+    geom_bar(stat = "identity",position = "stack", width = 0.8)+
+    geom_text(aes(label=paste0(ratio,"%")), size = 4, position =position_stack(vjust = 0.5))+
+    theme_solarized() + 
+    labs(title='Ποσοστό ατόμων που παρέχουν ανεπίσημα φροντίδα', x='', y='% επί του συνολικού πληθυσμού') +
+  theme(axis.title = element_text(), 
+        # panel.border = element_blank(),
+        strip.text.x = element_text(size = 12, angle = 0, face = "bold"),
+        axis.text.y = element_text(color = "grey20", size = 14, angle = 0, face = "bold"),
+        axis.text.x = element_text(color = "grey20", size = 14, angle = 0, face = "bold"),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 14),
+        legend.position = 'top',
+        plot.title = element_text(size = 17, face = 'bold'),
+        # plot.caption = element_text(size = 10, hjust = 0),
+        plot.caption = element_text(size = 10, hjust = 0))+
+  scale_x_discrete(labels=c("Ελλάδα"=expression(bold(Ελλάδα)), parse=TRUE))+
+  labs(caption="Γράφημα: ΕΛΙΑΜΕΠ, Πηγή: European Quality of Life Survey 2016")
+
+ggsave("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/February/Week 4/plot_gr_informalcare.png",plot_gr_informalcare,  width = 33, height = 25, units = 'cm')
+
+informal_care$countries_eng = factor(informal_care$countries_eng, levels=c(
+'Romania',
+'Czechia',
+'Austria',
+'Bulgaria',
+'Ireland',
+'Sweden',
+'Finland',
+'Portugal',
+'Slovenia',
+'Cyprus',
+'Estonia',
+'France',
+'Croatia',
+'Spain',
+'Lithuania',
+'Denmark',
+'Latvia',
+'Italy',
+'EU', 
+'Hungary',
+'Netherlands',
+'UK',
+'Slovakia',
+'Poland',
+'Luxembourg',
+'Germany',
+'Malta',
+'Belgium',
+'Greece'
+))
+
+plot_eng_informalcare = ggplot(informal_care, aes(countries_eng, Values, fill = Ratios_eng, labels = ratio))+
+    theme_bw()+
+    coord_flip()+
+    geom_bar(stat = "identity",position = "stack", width = 0.8)+
+    geom_text(aes(label=paste0(ratio,"%")), size = 4, position =position_stack(vjust = 0.5))+
+    theme_solarized() + 
+    labs(title='Share of people providing informal care', x='', y='% over total population') +
+  theme(axis.title = element_text(), 
+        # panel.border = element_blank(),
+        strip.text.x = element_text(size = 12, angle = 0, face = "bold"),
+        axis.text.y = element_text(color = "grey20", size = 14, angle = 0, face = "bold"),
+        axis.text.x = element_text(color = "grey20", size = 14, angle = 0, face = "bold"),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 14),
+        legend.position = 'top',
+        plot.title = element_text(size = 17, face = 'bold'),
+        # plot.caption = element_text(size = 10, hjust = 0),
+        plot.caption = element_text(size = 10, hjust = 0))+
+  scale_x_discrete(labels=c("Greece"=expression(bold(Greece)), parse=TRUE))+
+  labs(caption="Graph: ELIAMEP, Source: European Quality of Life Survey 2016")
+
+ggsave("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/February/Week 4/plot_eng_informalcare.png",plot_eng_informalcare,  width = 33, height = 25, units = 'cm')
+
+```
+
+
+```{r lng}
+
+Sys.getlocale()
+Sys.setlocale(category = "LC_ALL", locale = "Greek")
+
+Countries = c('Γαλλία','Ολλανδία','Λιθουανία','Ισπανία','Πορτογαλία','Ελλάδα','Πολωνία','Βέλγιο','Ιταλία','Τουρκία', 'Ηνωμ. Βασίλειο')
+
+Year_2005 = c(13, 0, 0, 33.61, 5.5, 1.4, 0, 4.5, 3.32, 5, 4.4)
+
+Year_2021 = c(34.25, 12, 4, 70, 7.6, 7, 5, 9, 14.78, 24.5, 48.3)
+
+
+
+lng_capacity = data.frame(Countries,Year_2005, Year_2021) %>%
+               pivot_longer('Year_2005':'Year_2021',names_to = 'years', values_to = 'bcm') %>% 
+               mutate(years = case_when(years == 'Year_2005' ~ '2005', years == 'Year_2021' ~ '2021', 
+                                  TRUE ~ 'NA')) %>% 
+               mutate(Countries_eng = case_when(Countries == 'Λιθουανία' ~ 'Lithuania',
+                                                Countries == 'Πολωνία'~'Poland', 
+                                                Countries == 'Ελλάδα' ~ 'Greece', 
+                                                Countries == 'Πορτογαλία' ~ 'Portugal', 
+                                                Countries == 'Βέλγιο' ~ 'Belgium', 
+                                                Countries == 'Ολλανδία' ~ 'Netherlands', 
+                                                Countries == 'Ιταλία' ~ 'Italy', 
+                                                Countries == 'Τουρκία' ~ 'Turkey', 
+                                                Countries == 'Γαλλία' ~ 'France', 
+                                                Countries == 'Ηνωμ. Βασίλειο' ~ 'UK', 
+                                                Countries == 'Ισπανία' ~ 'Spain', 
+                                                TRUE ~ 'NA'))
+
+
+lng_capacity$Countries = factor(lng_capacity$Countries, levels=c(
+'Λιθουανία',
+'Πολωνία',
+'Ελλάδα',
+'Πορτογαλία',
+'Βέλγιο',
+'Ολλανδία',
+'Ιταλία',
+'Τουρκία',
+'Γαλλία',
+'Ηνωμ. Βασίλειο',
+'Ισπανία'
+))
+
+lng_capacity$Countries_eng = factor(lng_capacity$Countries_eng, levels=c(
+'Lithuania',
+'Poland', 
+'Greece', 
+'Portugal', 
+'Belgium', 
+'Netherlands', 
+'Italy', 
+'Turkey', 
+'France', 
+'UK', 
+'Spain')) 
+
+plot_gr_lng_capacity = ggplot(lng_capacity, aes(Countries, bcm, fill = years))+
+    theme_bw()+
+    coord_flip()+
+    geom_bar(stat = "identity",position = "dodge", width = 0.8)+
+    theme_solarized() + 
+    labs(title='Υγροποιημένο Φυσικό Αέριο - Δυναμικότητα επαναεριοποίησης \n(Regasification capacity)', x='', y='Δισ. κυβικά μέτρα ετησίως') +
+  theme(axis.title = element_text(), 
+        # panel.border = element_blank(),
+        strip.text.x = element_text(size = 12, angle = 0, face = "bold"),
+        axis.text.y = element_text(color = "grey20", size = 14, angle = 0, face = "bold"),
+        axis.text.x = element_text(color = "grey20", size = 14, angle = 0, face = "bold"),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 14),
+        legend.position = 'top',
+        plot.title = element_text(size = 17, face = 'bold'),
+        # plot.caption = element_text(size = 10, hjust = 0),
+        plot.caption = element_text(size = 10, hjust = 0))+
+  scale_x_discrete(labels=c("Ελλάδα"=expression(bold(Ελλάδα)), parse=TRUE))+
+  labs(caption="Γράφημα: ΕΛΙΑΜΕΠ, Πηγή: Gas Infrastructure Europe - GLE Investment Database 2005-2026")
+
+ggsave("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/March/Week 1/plot_gr_lng_capacity.png",plot_gr_lng_capacity,  width = 33, height = 25, units = 'cm')
+
+
+plot_eng_lng_capacity = ggplot(lng_capacity, aes(Countries_eng, bcm, fill = years))+
+    theme_bw()+
+    coord_flip()+
+    geom_bar(stat = "identity",position = "dodge", width = 0.8)+
+    theme_solarized() + 
+    labs(title='Liquefied natural gas (LNG) - Regasification capacity', x='', y='Billion cubic metres annually') +
+  theme(axis.title = element_text(), 
+        # panel.border = element_blank(),
+        strip.text.x = element_text(size = 12, angle = 0, face = "bold"),
+        axis.text.y = element_text(color = "grey20", size = 14, angle = 0, face = "bold"),
+        axis.text.x = element_text(color = "grey20", size = 14, angle = 0, face = "bold"),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 14),
+        legend.position = 'top',
+        plot.title = element_text(size = 17, face = 'bold'),
+        # plot.caption = element_text(size = 10, hjust = 0),
+        plot.caption = element_text(size = 10, hjust = 0))+
+  scale_x_discrete(labels=c("Greece"=expression(bold(Greece)), parse=TRUE))+
+  labs(caption="Graph: ELIAMEP, Source: Gas Infrastructure Europe - GLE Investment Database 2005-2026")
+
+ggsave("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/March/Week 1/plot_eng_lng_capacity.png",plot_eng_lng_capacity,  width = 33, height = 25, units = 'cm')
+
+
+```
+
+
+```{r Germany Primary Energy Use}
+Sys.getlocale()
+Sys.setlocale(category = "LC_ALL", locale = "Greek")
+
+Energy_source = c('Πετρέλαιο','Φυσικό αέριο','Άνθρακας (λιγνίτης, λιθάνθρακας)','Πυρηνική ενέργεια','Ανανεώσιμες πηγές ενέργειας','Άλλη')
+
+
+ThW_2021 = c(0.66*1077, 0.45*905, 0.74*606, 209, 545, 45)
+
+Russian_ThW = c(0.34*1077, 0.55*905, 0.26*606, 0, 0, 0)
+
+german_energy = data.frame(Energy_source,ThW_2021, Russian_ThW) %>%
+               pivot_longer('ThW_2021':'Russian_ThW',names_to = 'sources', values_to = 'Twh') %>% 
+               mutate(sources_gr = case_when(sources == 'ThW_2021' ~ '`Ιδια παραγωγή/Εισαγωγές από χώρες πλην Ρωσίας', sources == 'Russian_ThW' ~ 'Εισαγωγές από Ρωσία', TRUE ~ 'NA')) %>% 
+               mutate(sources_eng = case_when(sources == 'ThW_2021' ~ 'Own production / Imports from countries other than Russia', sources == 'Russian_ThW' ~ 'Imports from Russia', TRUE ~ 'NA')) %>% 
+               mutate(Energy_sources_eng = case_when(Energy_source == 'Πετρέλαιο' ~ 'Oil',
+                                                     Energy_source == 'Φυσικό αέριο' ~ 'Gas',
+                                                     Energy_source == 'Άνθρακας (λιγνίτης, λιθάνθρακας)' ~ 'Coal (lignite & hard coal)', 
+                                                     Energy_source == 'Πυρηνική ενέργεια' ~ 'Nuclear',
+                                                     Energy_source == 'Ανανεώσιμες πηγές ενέργειας'~ 'Renewables', 
+                                                     Energy_source == 'Άλλη' ~ 'Other', TRUE ~ 'NA'))
+
+german_energy$Energy_source = factor(german_energy$Energy_source, levels=c(
+'Άλλη','Πυρηνική ενέργεια', 'Ανανεώσιμες πηγές ενέργειας','Άνθρακας (λιγνίτης, λιθάνθρακας)','Φυσικό αέριο','Πετρέλαιο'))
+
+
+plot_gr_german_energy = ggplot(german_energy, aes(Energy_source, Twh, fill = sources_gr))+
+    theme_bw()+
+    coord_flip()+
+    geom_bar(stat = "identity",position = "stack", width = 0.8)+
+    theme_solarized() + 
+    labs(title='Γερμανική πρωτογενής χρήση ενέργειας - 2021', x='', y='ThW') +
+  theme(axis.title = element_text(), 
+        # panel.border = element_blank(),
+        strip.text.x = element_text(size = 12, angle = 0, face = "bold"),
+        axis.text.y = element_text(color = "grey20", size = 14, angle = 0, face = "bold"),
+        axis.text.x = element_text(color = "grey20", size = 14, angle = 0, face = "bold"),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 14),
+        legend.position = 'top',
+        plot.title = element_text(size = 17, face = 'bold'),
+        # plot.caption = element_text(size = 10, hjust = 0),
+        plot.caption = element_text(size = 10, hjust = 0))+
+  scale_x_discrete(labels=c("Ελλάδα"=expression(bold(Ελλάδα)), parse=TRUE))+
+  labs(caption="Γράφημα: ΕΛΙΑΜΕΠ, Πηγή: Agora Energiewende (2022); Eckert, and Abnett (2022).\nΟι τιμές για το φυσικό αέριο αναφέρονται στο 2020 ενώ για το 2021 και 2022 είναι αισθητά χαμηλότερες")
+
+ggsave("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/March/Week 2/plot_gr_german_energy.png",plot_gr_german_energy,  width = 33, height = 25, units = 'cm')
+
+german_energy$Energy_sources_eng = factor(german_energy$Energy_sources_eng, levels=c(
+'Other','Nuclear', 'Renewables','Coal (lignite & hard coal)','Gas','Oil'))
+
+plot_eng_german_energy = ggplot(german_energy, aes(Energy_sources_eng, Twh, fill = sources_eng))+
+    theme_bw()+
+    coord_flip()+
+    geom_bar(stat = "identity",position = "stack", width = 0.8)+
+    theme_solarized() + 
+    labs(title='German primary energy usage - 2021', x='', y='ThW') +
+  theme(axis.title = element_text(), 
+        # panel.border = element_blank(),
+        strip.text.x = element_text(size = 12, angle = 0, face = "bold"),
+        axis.text.y = element_text(color = "grey20", size = 14, angle = 0, face = "bold"),
+        axis.text.x = element_text(color = "grey20", size = 14, angle = 0, face = "bold"),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 14),
+        legend.position = 'top',
+        plot.title = element_text(size = 17, face = 'bold'),
+        # plot.caption = element_text(size = 10, hjust = 0),
+        plot.caption = element_text(size = 10, hjust = 0))+
+  scale_x_discrete(labels=c("Ελλάδα"=expression(bold(Ελλάδα)), parse=TRUE))+
+  labs(caption="Graph: ELIAMEP, Source: Agora Energiewende (2022); Eckert, and Abnett (2022).\nFigures for Gas refer to 2020 while for 2021, 2022 figures are lower")
+
+ggsave("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/March/Week 2/plot_eng_german_energy.png",plot_eng_german_energy,  width = 33, height = 25, units = 'cm')
+
+```
