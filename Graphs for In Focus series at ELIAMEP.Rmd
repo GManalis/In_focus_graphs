@@ -2,7 +2,9 @@
 title: "Graphs for In Focus series @ELIAMEP"
 author: "Georgios Manalis"
 date: "3/10/2022"
-output: pdf_document
+output: 
+  pdf_document:
+    latex_engine: xelatex
 ---
 
 ```{r setup, include=FALSE}
@@ -663,9 +665,7 @@ ggplot(data.hd_man, aes(x = countries, y = values, fill =countries))+
 Sys.getlocale()
 Sys.setlocale(category = "LC_ALL", locale = "Greek")
 
-str(data_st$Percentage)
-
-data_st = read.xlsx("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/December/graph training.xlsx", 1) %>% 
+data_st = read.xlsx("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/December/Week 1/graph training.xlsx", 1) %>% 
   mutate(percentage = as.numeric(Percentage)) %>% 
       mutate(Type_gr = case_when(Type == "Total"~"Σύνολο των επιχειρήσεων", 
                                                 TRUE ~ "Μεγάλες επιχειρήσεις (250+ εργαζόμενοι)")) %>% 
@@ -837,133 +837,131 @@ ggplot(data_st, aes(Countries, percentage, fill = Type, group = Type))+
 
 
 
-```{r EPENDYSEIS}
-Sys.getlocale()
-Sys.setlocale(category = "LC_ALL", locale = "Greek")
+<!-- ```{r EPENDYSEIS} -->
+<!-- Sys.getlocale() -->
+<!-- Sys.setlocale(category = "LC_ALL", locale = "Greek") -->
 
-# data_inv = read.csv("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/December/Week 2/ependyseis.csv") %>% 
-#   mutate(year = YEAR) %>%
-#   mutate(value_inv = VALUE_INV) %>%
-#   select(- YEAR, - VALUE_INV) %>%
-#   mutate(year = round(year,0)) %>% 
-#   mutate(value_inv = round(value_inv, 1)) %>% 
-#   filter(!duplicated(year))
-#   
-# plot1 = ggplot(data=data_inv, aes(x=year, y=value_inv, group=1)) +
-#   geom_line(color="red", size = 1.5) +
-#    ggtitle('Ποσοστό (%) επί του ΑΕΠ')+
-#     xlab('Ετος')+ylab("%")+
-#     theme(plot.title = element_text(hjust = 0.5, size=13, face="bold"), 
-#         plot.caption = element_text(hjust = 1), 
-#         axis.text.x=element_text(angle = 0, face="bold"),
-#         axis.text.y = element_text(angle = 0, face="bold"), 
-#         legend.position = "none")
+<!-- # data_inv = read.csv("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/December/Week 2/ependyseis.csv") %>%  -->
+<!-- #   mutate(year = YEAR) %>% -->
+<!-- #   mutate(value_inv = VALUE_INV) %>% -->
+<!-- #   select(- YEAR, - VALUE_INV) %>% -->
+<!-- #   mutate(year = round(year,0)) %>%  -->
+<!-- #   mutate(value_inv = round(value_inv, 1)) %>%  -->
+<!-- #   filter(!duplicated(year)) -->
+<!-- #    -->
+<!-- # plot1 = ggplot(data=data_inv, aes(x=year, y=value_inv, group=1)) + -->
+<!-- #   geom_line(color="red", size = 1.5) + -->
+<!-- #    ggtitle('Ποσοστό (%) επί του ΑΕΠ')+ -->
+<!-- #     xlab('Ετος')+ylab("%")+ -->
+<!-- #     theme(plot.title = element_text(hjust = 0.5, size=13, face="bold"),  -->
+<!-- #         plot.caption = element_text(hjust = 1),  -->
+<!-- #         axis.text.x=element_text(angle = 0, face="bold"), -->
+<!-- #         axis.text.y = element_text(angle = 0, face="bold"),  -->
+<!-- #         legend.position = "none") -->
 
-# Insert GDP DEFL FROM WB
-gdp_defl = read.csv("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/December/Week 2/GDP_DEFL.csv") %>% mutate(gdp_defl = GDP_DEFL/100) %>% select(-GDP_DEFL)
+<!-- # Insert GDP DEFL FROM WB -->
+<!-- gdp_defl = read.csv("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/December/Week 2/GDP_DEFL.csv") %>% mutate(gdp_defl = GDP_DEFL/100) %>% select(-GDP_DEFL) -->
 
-data_aposveseis = read.csv("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/December/Week 2/aposveseis.csv") %>% 
-   mutate(Year = round(Year, 0)) %>% 
-   mutate(Aposveseis = round(Aposveseis,1)) %>% 
-  filter(!duplicated(Year))
+<!-- data_aposveseis = read.csv("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/December/Week 2/aposveseis.csv") %>%  -->
+<!--    mutate(Year = round(Year, 0)) %>%  -->
+<!--    mutate(Aposveseis = round(Aposveseis,1)) %>%  -->
+<!--   filter(!duplicated(Year)) -->
 
-# Insert Systatika twn Ependysewn & merge them stis katalliles katigories. 
-data_consistency = read.xlsx("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/December/Week 2/consistency.xlsx",1) %>% group_by(Year) %>% mutate("Agricultural, Other products" = sum(Agriculture.foresty.fisheries,Other.products)) %>% mutate("Metal products, Machinery, Transport equipment" = sum(Metal.products.and.machinery,Transport.equipment)) %>% mutate("Housing, Other constructions" = sum(Housing,Other.constructions)) %>% 
-  mutate("Δ Inventories" = Changes.in.inventories) %>% select(Year,"Agricultural, Other products",  "Metal products, Machinery, Transport equipment", "Housing, Other constructions","Δ Inventories", Total)
+<!-- # Insert Systatika twn Ependysewn & merge them stis katalliles katigories.  -->
+<!-- data_consistency = read.xlsx("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/December/Week 2/consistency.xlsx",1) %>% group_by(Year) %>% mutate("Agricultural, Other products" = sum(Agriculture.foresty.fisheries,Other.products)) %>% mutate("Metal products, Machinery, Transport equipment" = sum(Metal.products.and.machinery,Transport.equipment)) %>% mutate("Housing, Other constructions" = sum(Housing,Other.constructions)) %>%  -->
+<!--   mutate("Δ Inventories" = Changes.in.inventories) %>% select(Year,"Agricultural, Other products",  "Metal products, Machinery, Transport equipment", "Housing, Other constructions","Δ Inventories", Total) -->
 
-data_consistency = left_join(data_consistency, data_aposveseis, by = "Year")
+<!-- data_consistency = left_join(data_consistency, data_aposveseis, by = "Year") -->
 
-nm1 = c("Agricultural, Other products","Metal products, Machinery, Transport equipment", 
-                   "Housing, Other constructions", "Δ Inventories", 
-                   "Total", "Aposveseis")
+<!-- nm1 = c("Agricultural, Other products","Metal products, Machinery, Transport equipment",  -->
+<!--                    "Housing, Other constructions", "Δ Inventories",  -->
+<!--                    "Total", "Aposveseis") -->
 
-data_consistency = left_join(data_consistency, gdp_defl, by = "Year") %>% ungroup() %>% 
-  mutate(across(all_of(nm1), ~ .* gdp_defl, .names="{.col}_defl")) %>% 
-  select(Year, contains("_defl"), -gdp_defl)
-plot1 = ggplot(data_consistency) + 
-        geom_line(aes(x=Year, y=Aposveseis_defl))+
-        geom_line(aes(x=Year, y=Total_defl))
+<!-- data_consistency = left_join(data_consistency, gdp_defl, by = "Year") %>% ungroup() %>%  -->
+<!--   mutate(across(all_of(nm1), ~ .* gdp_defl, .names="{.col}_defl")) %>%  -->
+<!--   select(Year, contains("_defl"), -gdp_defl) -->
+<!-- plot1 = ggplot(data_consistency) +  -->
+<!--         geom_line(aes(x=Year, y=Aposveseis_defl))+ -->
+<!--         geom_line(aes(x=Year, y=Total_defl)) -->
 
-data_consistency_long = data_consistency %>% pivot_longer(cols = -c(Year,Total_defl, Aposveseis_defl) , names_to = 'components', values_to = "values") %>% select(- Total_defl, - Aposveseis_defl)
-data_all = left_join(data_consistency_long, data_consistency, by = "Year")
-x_axis_labels <- min(data_all[,"Year"]):max(data_all[,"Year"])
+<!-- data_consistency_long = data_consistency %>% pivot_longer(cols = -c(Year,Total_defl, Aposveseis_defl) , names_to = 'components', values_to = "values") %>% select(- Total_defl, - Aposveseis_defl) -->
+<!-- data_all = left_join(data_consistency_long, data_consistency, by = "Year") -->
+<!-- x_axis_labels <- min(data_all[,"Year"]):max(data_all[,"Year"]) -->
 
-ggplot(data_all, aes(fill=components, y=values, x=Year)) + 
-  theme_solarized() + 
-  geom_bar(aes(fill=components, y=values, x=Year),stat="identity")+
-  geom_line(aes(x=Year, y=Total_defl,group = 1, linetype = ""), color = 'blue', size = 1.3)+
-  geom_line(aes(x=Year, y=Aposveseis_defl, group = 2, linetype = " "), color = 'blue', size = 1.3)+
-  ggtitle('Investment in Greece, 1995-2020')+
-  xlab('Year')+ylab("mil. euros")+
-  theme(plot.title = element_text(hjust = 0.5, size=22, face="bold"),
-  legend.key.size = unit(2, 'cm'),
-    plot.caption = element_text(hjust = 0, size = 17),
-  axis.text.x=element_text(angle = 45, face="bold", size = 17),
-  axis.text.y = element_text(angle = 0, face="bold", size = 17),
-  # legend.position = "top",
-  legend.title = element_blank(),
-  legend.text = element_text(face="bold", size = 14),
-  axis.title=element_text(size=17,face="bold"))+
-  scale_linetype_manual(values = c(1, 3),
-                        labels = c("Investment", "Depreciation"))+
-  scale_x_continuous(labels = x_axis_labels, breaks = x_axis_labels)+
-  scale_fill_discrete(labels = c("Agricultural, Other products", "Housing, Other construction", "Metal products, Machinery, Transport equipment", "Change in Inventories"))+
-  labs(caption="Graph: ELIAMEP, Source: Elstat \nData have been expressed in 2015 constant prices")
-  
-
-ggplot(data_all, aes(fill=components, y=values, x=Year)) + 
-  geom_bar(aes(fill=components, y=values, x=Year),stat="identity")+
-  geom_line(aes(x=Year, y=Total_defl,group = 1, linetype = ""), color = 'blue', size = 1.3)+
-  geom_line(aes(x=Year, y=Aposveseis_defl, group = 2, linetype = " "), color = 'blue', size = 1.3)+
-  ggtitle('Επενδύσεις στην Ελλάδα, 1995-2020')+
-  xlab('Ετος')+ylab("εκ. ευρώ")+
-  coord_fixed()+
-  theme(plot.title = element_text(hjust = 0.5, size=22, face="bold"),
-        aspect.ratio=4/6,
-  legend.key.size = unit(2, 'cm'),
-    plot.caption = element_text(hjust = 0, size = 20),
-  axis.text.x=element_text(angle = 45, face="bold", size = 20),
-  axis.text.y = element_text(angle = 0, face="bold", size = 20),
-  # legend.position = "top",
-  legend.title = element_blank(),
-  legend.text = element_text(face="bold", size = 17),
-  axis.title=element_text(size=20,face="bold"))+
-  scale_linetype_manual(values = c(1, 3),
-                        labels = c("Επενδύσεις", "Αποσβέσεις"))+
-  scale_x_continuous(labels = x_axis_labels, breaks = x_axis_labels)  +
-  scale_fill_discrete(labels = c("Αγροτικά και άλλα προϊόντα", "Κατοικίες και άλλες κατασκευές", "Μεταλλικά προϊόντα, μηχανήματα \nκαι εξοπλισμός μεταφορών", "Μεταβολή αποθεμάτων"))+
- labs(caption="Γράφημα: EΛΙΑΜΕΠ, Πηγή:ΕλΣτατ \nΤα δεδομένα έχουν εκφραστεί σε σταθερές τιμές του 2015")
-
-ggsave("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/December/Week 2/correct_ratio_eng.png")
+<!-- ggplot(data_all, aes(fill=components, y=values, x=Year)) +  -->
+<!--   theme_solarized() +  -->
+<!--   geom_bar(aes(fill=components, y=values, x=Year),stat="identity")+ -->
+<!--   geom_line(aes(x=Year, y=Total_defl,group = 1, linetype = ""), color = 'blue', size = 1.3)+ -->
+<!--   geom_line(aes(x=Year, y=Aposveseis_defl, group = 2, linetype = " "), color = 'blue', size = 1.3)+ -->
+<!--   ggtitle('Investment in Greece, 1995-2020')+ -->
+<!--   xlab('Year')+ylab("mil. euros")+ -->
+<!--   theme(plot.title = element_text(hjust = 0.5, size=22, face="bold"), -->
+<!--   legend.key.size = unit(2, 'cm'), -->
+<!--     plot.caption = element_text(hjust = 0, size = 17), -->
+<!--   axis.text.x=element_text(angle = 45, face="bold", size = 17), -->
+<!--   axis.text.y = element_text(angle = 0, face="bold", size = 17), -->
+<!--   # legend.position = "top", -->
+<!--   legend.title = element_blank(), -->
+<!--   legend.text = element_text(face="bold", size = 14), -->
+<!--   axis.title=element_text(size=17,face="bold"))+ -->
+<!--   scale_linetype_manual(values = c(1, 3), -->
+<!--                         labels = c("Investment", "Depreciation"))+ -->
+<!--   scale_x_continuous(labels = x_axis_labels, breaks = x_axis_labels)+ -->
+<!--   scale_fill_discrete(labels = c("Agricultural, Other products", "Housing, Other construction", "Metal products, Machinery, Transport equipment", "Change in Inventories"))+ -->
+<!--   labs(caption="Graph: ELIAMEP, Source: Elstat \nData have been expressed in 2015 constant prices") -->
 
 
-# Insert total investments kai aposveseis
-# 
-# data_totalinvestment = read.csv("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/December/Week 2/ependyseis_teliko.csv") %>% 
-#    mutate(Year = round(Year, 0)) %>% 
-#    mutate(Inv_value = round(Inv_value,1)) %>% 
-#   filter(!duplicated(Year))
+<!-- ggplot(data_all, aes(fill=components, y=values, x=Year)) +  -->
+<!--   geom_bar(aes(fill=components, y=values, x=Year),stat="identity")+ -->
+<!--   geom_line(aes(x=Year, y=Total_defl,group = 1, linetype = ""), color = 'blue', size = 1.3)+ -->
+<!--   geom_line(aes(x=Year, y=Aposveseis_defl, group = 2, linetype = " "), color = 'blue', size = 1.3)+ -->
+<!--   ggtitle('Επενδύσεις στην Ελλάδα, 1995-2020')+ -->
+<!--   xlab('Ετος')+ylab("εκ. ευρώ")+ -->
+<!--   coord_fixed()+ -->
+<!--   theme(plot.title = element_text(hjust = 0.5, size=22, face="bold"), -->
+<!--         aspect.ratio=4/6, -->
+<!--   legend.key.size = unit(2, 'cm'), -->
+<!--     plot.caption = element_text(hjust = 0, size = 20), -->
+<!--   axis.text.x=element_text(angle = 45, face="bold", size = 20), -->
+<!--   axis.text.y = element_text(angle = 0, face="bold", size = 20), -->
+<!--   # legend.position = "top", -->
+<!--   legend.title = element_blank(), -->
+<!--   legend.text = element_text(face="bold", size = 17), -->
+<!--   axis.title=element_text(size=20,face="bold"))+ -->
+<!--   scale_linetype_manual(values = c(1, 3), -->
+<!--                         labels = c("Επενδύσεις", "Αποσβέσεις"))+ -->
+<!--   scale_x_continuous(labels = x_axis_labels, breaks = x_axis_labels)  + -->
+<!--   scale_fill_discrete(labels = c("Αγροτικά και άλλα προϊόντα", "Κατοικίες και άλλες κατασκευές", "Μεταλλικά προϊόντα, μηχανήματα \nκαι εξοπλισμός μεταφορών", "Μεταβολή αποθεμάτων"))+ -->
+<!--  labs(caption="Γράφημα: EΛΙΑΜΕΠ, Πηγή:ΕλΣτατ \nΤα δεδομένα έχουν εκφραστεί σε σταθερές τιμές του 2015") -->
+
+<!-- ggsave("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/December/Week 2/correct_ratio_eng.png") -->
 
 
+<!-- # Insert total investments kai aposveseis -->
+<!-- #  -->
+<!-- data_totalinvestment = read.csv("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/December/Week 2/ependyseis_teliko.csv") %>% -->
+<!--    mutate(Year = round(Year, 0)) %>% -->
+<!--    mutate(Inv_value = round(Inv_value,1)) %>% -->
+<!--   filter(!duplicated(Year)) -->
 
 
 
-data_all_final = left_join(data_totalinvestment, data_aposveseis, by = 'Year')
-data_all_final = left_join(data_all_final, gdp_defl, by = 'Year')
-  
-data_all_final = data_all_final %>% mutate(inv_value_cp = Inv_value * gdp_defl) %>% 
-  mutate(aposveseis_cp = Aposveseis * gdp_defl) %>%  select(Year, inv_value_cp, aposveseis_cp) %>% 
-  pivot_longer(cols = !Year, names_to = 'components', values_to = "values")
-  
-data_all_final_gr = data_all_final %>% 
-  mutate(components = case_when(components == "aposveseis_cp" ~ 'Αποσβέσεις', 
-                                TRUE ~ "Επενδύσεις"))
-
-data_all_final_eng = data_all_final %>% 
-  mutate(components = case_when(components == "aposveseis_cp" ~ 'Depreciation', 
-                                TRUE ~ "Investment"))
 
 
+<!-- data_all_final = left_join(data_totalinvestment, data_aposveseis, by = 'Year') -->
+<!-- data_all_final = left_join(data_all_final, gdp_defl, by = 'Year') -->
+
+<!-- data_all_final = data_all_final %>% mutate(inv_value_cp = Inv_value * gdp_defl) %>%  -->
+<!--   mutate(aposveseis_cp = Aposveseis * gdp_defl) %>%  select(Year, inv_value_cp, aposveseis_cp) %>%  -->
+<!--   pivot_longer(cols = !Year, names_to = 'components', values_to = "values") -->
+
+<!-- data_all_final_gr = data_all_final %>%  -->
+<!--   mutate(components = case_when(components == "aposveseis_cp" ~ 'Αποσβέσεις',  -->
+<!--                                 TRUE ~ "Επενδύσεις")) -->
+
+<!-- data_all_final_eng = data_all_final %>%  -->
+<!--   mutate(components = case_when(components == "aposveseis_cp" ~ 'Depreciation',  -->
+<!--                                 TRUE ~ "Investment")) -->
 
 
 
@@ -971,74 +969,76 @@ data_all_final_eng = data_all_final %>%
 
 
 
-plot2_eng = ggplot(data_consistency_long, aes(fill=components, y=values, x=Year)) + 
-    geom_bar(stat="identity")+
-    ggtitle('Break down (%) of investement')+
-    xlab('Year')+ylab("% of total investment")+
-    theme(plot.title = element_text(hjust = 0.5, size=13, face="bold"), 
-        plot.caption = element_text(hjust = 1), 
-        axis.text.x=element_text(angle = 0, face="bold"),
-        axis.text.y = element_text(angle = 0, face="bold"), 
-        legend.position = "top", 
-        legend.title = element_blank(), 
-        legend.text = element_text(face="bold", size = 10))
-    # scale_fill_discrete(labels = c("A", "B", "C"))
 
 
-plot2_gr = ggplot(data_consistency_long, aes(fill=components, y=values, x=Year)) + 
-    geom_bar(position="fill", stat="identity")+
-    ggtitle('Σύσταση (%) εγχώριων επενδύσεων')+
-    xlab('Ετος')+ylab("% επί των συνολικών επενδύσεων")+
-    theme(plot.title = element_text(hjust = 0.5, size=13, face="bold"), 
-        plot.caption = element_text(hjust = 1), 
-        axis.text.x=element_text(angle = 0, face="bold"),
-        axis.text.y = element_text(angle = 0, face="bold"), 
-        legend.position = "top", 
-        legend.title = element_blank(), 
-        legend.text = element_text(face="bold", size = 10))+
-    scale_fill_discrete(labels = c("Αγροτικά και άλλα προϊόντα", "Κατοικίες και άλλες κατασκευές", "Μεταλλικά προϊόντα, μηχανήματα και εξοπλισμός μεταφορών"))
+<!-- plot2_eng = ggplot(data_consistency_long, aes(fill=components, y=values, x=Year)) +  -->
+<!--     geom_bar(stat="identity")+ -->
+<!--     ggtitle('Break down (%) of investement')+ -->
+<!--     xlab('Year')+ylab("% of total investment")+ -->
+<!--     theme(plot.title = element_text(hjust = 0.5, size=13, face="bold"),  -->
+<!--         plot.caption = element_text(hjust = 1),  -->
+<!--         axis.text.x=element_text(angle = 0, face="bold"), -->
+<!--         axis.text.y = element_text(angle = 0, face="bold"),  -->
+<!--         legend.position = "top",  -->
+<!--         legend.title = element_blank(),  -->
+<!--         legend.text = element_text(face="bold", size = 10)) -->
+<!--     # scale_fill_discrete(labels = c("A", "B", "C")) -->
 
 
-grid.arrange(plot1, plot2, ncol=1)
+<!-- plot2_gr = ggplot(data_consistency_long, aes(fill=components, y=values, x=Year)) +  -->
+<!--     geom_bar(position="fill", stat="identity")+ -->
+<!--     ggtitle('Σύσταση (%) εγχώριων επενδύσεων')+ -->
+<!--     xlab('Ετος')+ylab("% επί των συνολικών επενδύσεων")+ -->
+<!--     theme(plot.title = element_text(hjust = 0.5, size=13, face="bold"),  -->
+<!--         plot.caption = element_text(hjust = 1),  -->
+<!--         axis.text.x=element_text(angle = 0, face="bold"), -->
+<!--         axis.text.y = element_text(angle = 0, face="bold"),  -->
+<!--         legend.position = "top",  -->
+<!--         legend.title = element_blank(),  -->
+<!--         legend.text = element_text(face="bold", size = 10))+ -->
+<!--     scale_fill_discrete(labels = c("Αγροτικά και άλλα προϊόντα", "Κατοικίες και άλλες κατασκευές", "Μεταλλικά προϊόντα, μηχανήματα και εξοπλισμός μεταφορών")) -->
 
 
-
-
-
-
-
-plot1_gr = ggplot(data=data_all_final_gr, aes(x=Year, y=values, fill = components, color = components)) +
-  geom_line(size = 1.5)+
-   ggtitle('Επενδύσεις & Αποσβέσεις σε εκ. ευρώ')+
-    xlab('Ετος')+ylab("εκ. ευρώ")+
-    theme(plot.title = element_text(hjust = 0.5, size=13, face="bold"), 
-        plot.caption = element_text(hjust = 1), 
-        axis.text.x=element_text(angle = 0, face="bold"),
-        axis.text.y = element_text(angle = 0, face="bold"),
-        legend.position = "top",
-        legend.title = element_blank(), 
-        legend.text = element_text(face="bold", size = 10))+
-        labs(caption="σε σταθερές τιμές 2015")
-
-
-plot1_eng = ggplot(data=data_all_final_eng, aes(x=Year, y=values, fill = components, color = components)) +
-  geom_line(size = 1.5)+
-   ggtitle('Investment & Depreciation in mil. euros')+
-    xlab('Year')+ylab("mil. euros")+
-    theme(plot.title = element_text(hjust = 0.5, size=13, face="bold"), 
-        plot.caption = element_text(hjust = 1), 
-        axis.text.x=element_text(angle = 0, face="bold"),
-        axis.text.y = element_text(angle = 0, face="bold"),
-        legend.position = "top",
-        legend.title = element_blank(), 
-        legend.text = element_text(face="bold", size = 10))+
-      labs(caption="in 2015 constant Prices")
-
-grid.arrange(plot1_gr, plot2_gr, ncol=1)
+<!-- grid.arrange(plot1, plot2, ncol=1) -->
 
 
 
-```
+
+
+
+
+<!-- plot1_gr = ggplot(data=data_all_final_gr, aes(x=Year, y=values, fill = components, color = components)) + -->
+<!--   geom_line(size = 1.5)+ -->
+<!--    ggtitle('Επενδύσεις & Αποσβέσεις σε εκ. ευρώ')+ -->
+<!--     xlab('Ετος')+ylab("εκ. ευρώ")+ -->
+<!--     theme(plot.title = element_text(hjust = 0.5, size=13, face="bold"),  -->
+<!--         plot.caption = element_text(hjust = 1),  -->
+<!--         axis.text.x=element_text(angle = 0, face="bold"), -->
+<!--         axis.text.y = element_text(angle = 0, face="bold"), -->
+<!--         legend.position = "top", -->
+<!--         legend.title = element_blank(),  -->
+<!--         legend.text = element_text(face="bold", size = 10))+ -->
+<!--         labs(caption="σε σταθερές τιμές 2015") -->
+
+
+<!-- plot1_eng = ggplot(data=data_all_final_eng, aes(x=Year, y=values, fill = components, color = components)) + -->
+<!--   geom_line(size = 1.5)+ -->
+<!--    ggtitle('Investment & Depreciation in mil. euros')+ -->
+<!--     xlab('Year')+ylab("mil. euros")+ -->
+<!--     theme(plot.title = element_text(hjust = 0.5, size=13, face="bold"),  -->
+<!--         plot.caption = element_text(hjust = 1),  -->
+<!--         axis.text.x=element_text(angle = 0, face="bold"), -->
+<!--         axis.text.y = element_text(angle = 0, face="bold"), -->
+<!--         legend.position = "top", -->
+<!--         legend.title = element_blank(),  -->
+<!--         legend.text = element_text(face="bold", size = 10))+ -->
+<!--       labs(caption="in 2015 constant Prices") -->
+
+<!-- grid.arrange(plot1_gr, plot2_gr, ncol=1) -->
+
+
+
+<!-- ``` -->
 
 
 
@@ -1774,7 +1774,6 @@ ggsave("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/December/Week 4/plot_e
 Sys.getlocale()
 Sys.setlocale(category = "LC_ALL", locale = "Greek")
 
-str(data_teleworking$Round2)
 data_teleworking = read.xlsx("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/December/Week 5/Eurofound.xlsx", 1) %>% 
   mutate(Round2 = as.numeric(Round2)) %>% 
   pivot_longer("Round1":"Round3", names_to = "Round", values_to = "share") %>% 
