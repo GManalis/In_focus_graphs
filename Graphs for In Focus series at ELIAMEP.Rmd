@@ -63,6 +63,8 @@ library(gghighlight)
 library(ggthemes)
 ```
 
+\par 
+The present file includes the code for all graphs created for the In-focus series of the Economic Observatory @Eliamep. 
 
 ```{r vax socioeconomic event}
 Sys.getlocale()
