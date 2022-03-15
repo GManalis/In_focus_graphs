@@ -5,6 +5,8 @@ date: "3/10/2022"
 output: 
   pdf_document:
     latex_engine: xelatex
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
@@ -3676,3 +3678,89 @@ plot_eng_german_energy = ggplot(german_energy, aes(Energy_sources_eng, Twh, fill
 ggsave("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/March/Week 2/plot_eng_german_energy.png",plot_eng_german_energy,  width = 33, height = 25, units = 'cm')
 
 ```
+
+```{r EU imports exports from/to Russia}
+Sys.getlocale()
+Sys.setlocale(category = "LC_ALL", locale = "Greek")
+Countries = c('Ελλάδα','Λουξεμβούργο','Ιρλανδία', 'Γαλλία', 'Ισπανία', 'Μάλτα', 'Πορτογαλία', 'Σλοβενία', 'Κροατία', 'Ιταλία','Σουηδία','Κύπρος', 'Δανία', 'Ρουμανία', 'Ουγγαρία', 'Σλοβακία','Γερμανία','Αυστρία', 'Τσεχία', 'Ολλανδία', 'Βέλγιο','Πολωνία',
+'Βουλγαρία','Φινλανδία', 'Λιθουανία','Εσθονία', 'Λετονία')
+
+Exports_to_Russia = c(0.0023,0.208,0.15239,0.189,0.13239, 0.018,0.037, 1.8, 0.21, 0.41608,0.359, 0.180, 0.245,0.4161, 1.17,1.49,0.718,0.541,1.76, 0.83, 0.8132,1.36, 0.813, 1.41, 8.3, 3.0, 6.4)
+Imports_from_Russia = c(0.0012, 0.028,0.034,0.051,0.06, 0.08, 0.1312, 0.1541,0.1598, 0.165, 0.182, 0.1917,0.2625,0.268, 0.331,0.336,0.348,0.422,0.433,0.64,0.8162,0.936, 0.9417, 1.295, 1.74, 2.34, 2.48)
+
+
+european_trade = data.frame(Countries,Exports_to_Russia, Imports_from_Russia) %>%
+               pivot_longer('Exports_to_Russia':'Imports_from_Russia',names_to = 'flows', values_to = 'gdp_percentage') %>% 
+  mutate(flows_gr = case_when(flows == 'Imports_from_Russia' ~ 'Εισαγωγές από Ρωσία', 
+                              flows == 'Exports_to_Russia' ~ 'Εξαγωγές προς Ρωσία', 
+                              TRUE ~ 'NA'))
+european_trade$Countries = factor(european_trade$Countries, levels=c('Ελλάδα','Λουξεμβούργο','Ιρλανδία', 'Γαλλία', 'Ισπανία', 'Μάλτα', 'Πορτογαλία', 'Σλοβενία', 'Κροατία', 'Ιταλία','Σουηδία','Κύπρος', 'Δανία', 'Ρουμανία', 'Ουγγαρία', 'Σλοβακία','Γερμανία','Αυστρία', 'Τσεχία', 'Ολλανδία', 'Βέλγιο','Πολωνία',
+'Βουλγαρία','Φινλανδία', 'Λιθουανία','Εσθονία', 'Λετονία'))
+
+plot_gr_european_trade = ggplot(european_trade, aes(Countries, gdp_percentage, fill = flows_gr))+
+    theme_bw()+
+    coord_flip()+
+    geom_bar(stat = "identity",position = "dodge", width = 0.8)+
+    theme_solarized() + 
+    labs(title='Εισαγωγές/Εξαγωγές αγαθών \n(εκτός καυσίμων) από/προς τη Ρωσία \n(% επί του ΑΕΠ) ', x='', y='%') +
+  theme(axis.title = element_text(), 
+        # panel.border = element_blank(),
+        strip.text.x = element_text(size = 12, angle = 0, face = "bold"),
+        axis.text.y = element_text(color = "grey20", size = 14, angle = 0, face = "bold"),
+        axis.text.x = element_text(color = "grey20", size = 14, angle = 0, face = "bold"),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 14),
+        legend.position = 'top',
+        plot.title = element_text(size = 17, face = 'bold'),
+        # plot.caption = element_text(size = 10, hjust = 0),
+        plot.caption = element_text(size = 10, hjust = 0))+
+  scale_x_discrete(labels=c("Ελλάδα"=expression(bold(Ελλάδα)), parse=TRUE))+
+  labs(caption="Γράφημα: ΕΛΙΑΜΕΠ, Πηγή: Nils Redeker (2022), Same shock, different effects\nPolicy Brief, Hertie School, Jacques Delors Centre")
+
+
+## % of imported energy from Russia
+Countries_2 = c('Κύπρος', 'Μάλτα','Ιρλανδία','Κροατία','Δανία','Αυστρία','Βέλγιο','Πορτογαλία','Ισπανία','Σουηδία','Γαλλία','Ολλανδία','Λουξεμβούργο', 'Ελλάδα', 'Λιθουανία', 'Ιταλία', 'Ρουμανία', 'Εσθονία', 'Πολωνία','Γερμανία','Φινλανδία','Βουλγαρία','Σλοβακία','Ουγγαρία',  'Λετονία','Τσεχία')
+
+natural_gas = c(0,0,0,0,0,0,6.51,9.86,10.45,13.01,16.96,26.62,27.41,39.44,42.20,43.39,44.90,46.35,55.22,65.28,67.25,75.1,85.6,95.06,100,100)
+Oil_petroleum = c(1.10,8.047,4.41,8.83,14.67,5.83,22.091,3.78,5.36,12.62,13.09,20.98,0.0,26.35,20.197,12.46,32.82,32.032,67.53,29.60,66.90,7.88,78.422,44.49,68.79,29.03)
+solid_fuels = c(100,0,20.44,70.54,95.59,9.21,31.86,0.0,46.09,24.44,31.66,53.30,5.81,87.77,90.58,52.50,55.71,100,71.94,45.89,50.30,85.17,30.26,19.84,97.19,7.81)
+
+european_trade_energy = data.frame(Countries_2,natural_gas, Oil_petroleum, solid_fuels) %>%
+               pivot_longer('natural_gas':'solid_fuels',names_to = 'types', values_to = 'percentage_imports') %>% 
+  mutate(types_gr = case_when(types == "natural_gas"~'Φυσικό αέριο', 
+                              types == 'Oil_petroleum' ~ 'Πετρέλαιο', 
+                              types == 'solid_fuels' ~ 'Στερεά καύσιμα', 
+                              TRUE ~ 'NA'))
+
+european_trade_energy$Countries_2 = factor(european_trade_energy$Countries_2, levels=c('Κύπρος', 'Μάλτα','Ιρλανδία','Κροατία','Δανία','Αυστρία','Βέλγιο','Πορτογαλία','Ισπανία','Σουηδία','Γαλλία','Ολλανδία','Λουξεμβούργο', 'Ελλάδα', 'Λιθουανία', 'Ιταλία', 'Ρουμανία', 'Εσθονία','Πολωνία','Γερμανία','Φινλανδία','Βουλγαρία','Σλοβακία','Ουγγαρία',  'Λετονία','Τσεχία'))
+
+european_trade_energy$types_gr = factor(european_trade_energy$types_gr, levels=c('Φυσικό αέριο','Πετρέλαιο','Στερεά καύσιμα'))
+
+
+plot_gr_european_trade_energy = ggplot(european_trade_energy, aes(Countries_2, percentage_imports, fill = factor(types_gr)))+
+    theme_bw()+
+    coord_flip()+
+    geom_bar(stat = "identity", width = 0.8)+
+    facet_grid(~types_gr)+
+    theme_solarized() + 
+    labs(title='Εισαγωγές ενέργειας από τη Ρωσία \n(% επί των συνολικών εισαγωγών) ', x='', y='%') +
+  theme(axis.title = element_text(), 
+        # panel.border = element_blank(),
+        strip.text.x = element_text(size = 12, angle = 0, face = "bold"),
+        axis.text.y = element_text(color = "grey20", size = 14, angle = 0, face = "bold"),
+        axis.text.x = element_text(color = "grey20", size = 10, angle = 0, face = "bold"),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 14),
+        legend.position = 'none',
+        plot.title = element_text(size = 17, face = 'bold'),
+        # plot.caption = element_text(size = 10, hjust = 0),
+        plot.caption = element_text(size = 10, hjust = 0))+
+  scale_x_discrete(labels=c("Ελλάδα"=expression(bold(Ελλάδα)), parse=TRUE))
+  
+
+final_plot  = grid.arrange(plot_gr_european_trade, plot_gr_european_trade_energy, ncol=2)
+
+ggsave("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/March/Week 3/final_plot.png",final_plot,  width = 33, height = 25, units = 'cm')
+
+```
+
