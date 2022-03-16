@@ -3725,12 +3725,12 @@ natural_gas = c(0,0,0,0,0,0,6.51,9.86,10.45,13.01,16.96,26.62,27.41,39.44,42.20,
 Oil_petroleum = c(1.10,8.047,4.41,8.83,14.67,5.83,22.091,3.78,5.36,12.62,13.09,20.98,0.0,26.35,20.197,12.46,32.82,32.032,67.53,29.60,66.90,7.88,78.422,44.49,68.79,29.03)
 solid_fuels = c(100,0,20.44,70.54,95.59,9.21,31.86,0.0,46.09,24.44,31.66,53.30,5.81,87.77,90.58,52.50,55.71,100,71.94,45.89,50.30,85.17,30.26,19.84,97.19,7.81)
 
-european_trade_energy = data.frame(Countries_2,natural_gas, Oil_petroleum, solid_fuels) %>%
-               pivot_longer('natural_gas':'solid_fuels',names_to = 'types', values_to = 'percentage_imports') %>% 
+european_trade_energy = data.frame(Countries_2,natural_gas, Oil_petroleum, solid_fuels) %>% select(-solid_fuels) %>%
+               pivot_longer('natural_gas':'Oil_petroleum',names_to = 'types', values_to = 'percentage_imports') %>% 
   mutate(types_gr = case_when(types == "natural_gas"~'Φυσικό αέριο', 
                               types == 'Oil_petroleum' ~ 'Πετρέλαιο', 
-                              types == 'solid_fuels' ~ 'Στερεά καύσιμα', 
-                              TRUE ~ 'NA'))
+                              # types == 'solid_fuels' ~ 'Στερεά καύσιμα', 
+                              TRUE ~ 'NA')) 
 
 european_trade_energy$Countries_2 = factor(european_trade_energy$Countries_2, levels=c('Κύπρος', 'Μάλτα','Ιρλανδία','Κροατία','Δανία','Αυστρία','Βέλγιο','Πορτογαλία','Ισπανία','Σουηδία','Γαλλία','Ολλανδία','Λουξεμβούργο', 'Ελλάδα', 'Λιθουανία', 'Ιταλία', 'Ρουμανία', 'Εσθονία','Πολωνία','Γερμανία','Φινλανδία','Βουλγαρία','Σλοβακία','Ουγγαρία',  'Λετονία','Τσεχία'))
 
