@@ -3693,9 +3693,45 @@ european_trade = data.frame(Countries,Exports_to_Russia, Imports_from_Russia) %>
                pivot_longer('Exports_to_Russia':'Imports_from_Russia',names_to = 'flows', values_to = 'gdp_percentage') %>% 
   mutate(flows_gr = case_when(flows == 'Imports_from_Russia' ~ 'Εισαγωγές από Ρωσία', 
                               flows == 'Exports_to_Russia' ~ 'Εξαγωγές προς Ρωσία', 
-                              TRUE ~ 'NA'))
+                              TRUE ~ 'NA')) %>% 
+  mutate(flows_eng = case_when(flows == 'Imports_from_Russia' ~ 'Imports from Russia', 
+                              flows == 'Exports_to_Russia' ~ 'Exports to Russia', 
+                              TRUE ~ 'NA')) %>% 
+  mutate(countries_eng = case_when(Countries == 'Δανία' ~ 'Denmark', 
+                                                   Countries == 'Φινλανδία' ~ 'Finland', 
+                                                 Countries == 'Σουηδία' ~ 'Sweden', 
+                                                 Countries == 'Ολλανδία' ~ 'Netherlands', 
+                                                 Countries == 'Ιρλανδία' ~ 'Ireland', 
+                                                 Countries == 'Μάλτα' ~ 'Malta', 
+                                                 Countries == 'Εσθονία' ~ 'Estonia', 
+                                                 Countries == 'Λουξεμβούργο' ~ 'Luxembourg', 
+                                                 Countries == 'Ισπανία' ~ 'Spain', 
+                                                   Countries == 'Αυστρία' ~ 'Austria',  
+                                                   Countries == 'Γερμανία' ~ 'Germany', 
+                                                 Countries == 'Βέλγιο' ~ 'Belgium', 
+                                                 Countries == 'Σλοβενία' ~ 'Slovenia',
+                                                   Countries == 'Λιθουανία' ~ 'Lithuania',
+                                                   Countries == 'ΗΒ' ~ 'UK', 
+                                                 Countries == 'Γαλλία' ~ 'France', 
+                                                 Countries == 'Πορτογαλία' ~ 'Portugal', 
+                                                 Countries == 'Λετονία' ~ 'Latvia', 
+                                                   Countries == 'Τσεχία' ~ 'Czechia', 
+                                                 Countries == 'Κροατία' ~ 'Croatia', 
+                                                 Countries == 'Ιταλία' ~ 'Italy',
+                                                 Countries == 'Κύπρος' ~ 'Cyprus', 
+                                                   Countries == 'Σλοβακία' ~ 'Slovakia', 
+                                                   Countries == 'Ουγγαρία' ~ 'Hungary', 
+                                                   Countries == 'Πολωνία' ~ 'Poland', 
+                                                   Countries == 'Ελλάδα' ~ 'Greece',
+                                                   Countries == 'Βουλγαρία'~ 'Bulgaria', 
+                                                   Countries == 'Ρουμανία' ~ 'Romania', 
+                                                   Countries == 'ΕΕ' ~ 'EU', 
+                                                   TRUE ~ 'NA'))
 european_trade$Countries = factor(european_trade$Countries, levels=c('Ελλάδα','Λουξεμβούργο','Ιρλανδία', 'Γαλλία', 'Ισπανία', 'Μάλτα', 'Πορτογαλία', 'Σλοβενία', 'Κροατία', 'Ιταλία','Σουηδία','Κύπρος', 'Δανία', 'Ρουμανία', 'Ουγγαρία', 'Σλοβακία','Γερμανία','Αυστρία', 'Τσεχία', 'Ολλανδία', 'Βέλγιο','Πολωνία',
 'Βουλγαρία','Φινλανδία', 'Λιθουανία','Εσθονία', 'Λετονία'))
+
+european_trade$countries_eng = factor(european_trade$countries_eng, levels=c('Greece','Luxembourg','Ireland', 'France', 'Spain', 'Malta', 'Portugal', 'Slovenia', 'Croatia', 'Italy','Sweden','Cyprus', 'Denmark', 'Romania', 'Hungary', 'Slovakia','Germany','Austria', 'Czechia', 'Netherlands', 'Belgium','Poland',
+'Bulgaria','Finland', 'Lithuania','Estonia', 'Latvia'))
 
 plot_gr_european_trade = ggplot(european_trade, aes(Countries, gdp_percentage, fill = flows_gr))+
     theme_bw()+
@@ -3717,6 +3753,27 @@ plot_gr_european_trade = ggplot(european_trade, aes(Countries, gdp_percentage, f
   scale_x_discrete(labels=c("Ελλάδα"=expression(bold(Ελλάδα)), parse=TRUE))+
   labs(caption="Γράφημα: ΕΛΙΑΜΕΠ, Πηγή: Nils Redeker (2022), Same shock, different effects\nPolicy Brief, Hertie School, Jacques Delors Centre")
 
+plot_eng_european_trade = ggplot(european_trade, aes(countries_eng, gdp_percentage, fill = flows_eng))+
+    theme_bw()+
+    coord_flip()+
+    geom_bar(stat = "identity",position = "dodge", width = 0.8)+
+    theme_solarized() + 
+    labs(title='Imports/Exports of goods \n(other than fuel) from/to Russia \n(% of GDP) ', x='', y='%') +
+  theme(axis.title = element_text(), 
+        # panel.border = element_blank(),
+        strip.text.x = element_text(size = 12, angle = 0, face = "bold"),
+        axis.text.y = element_text(color = "grey20", size = 14, angle = 0, face = "bold"),
+        axis.text.x = element_text(color = "grey20", size = 14, angle = 0, face = "bold"),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 14),
+        legend.position = 'top',
+        plot.title = element_text(size = 17, face = 'bold'),
+        # plot.caption = element_text(size = 10, hjust = 0),
+        plot.caption = element_text(size = 10, hjust = 0))+
+  scale_x_discrete(labels=c("Greece"=expression(bold(Greece)), parse=TRUE))+
+  labs(caption="Graph: ELIAMEP, Source: Nils Redeker (2022), Same shock, different effects\nPolicy Brief, Hertie School, Jacques Delors Centre")
+
+
 
 ## % of imported energy from Russia
 Countries_2 = c('Κύπρος', 'Μάλτα','Ιρλανδία','Κροατία','Δανία','Αυστρία','Βέλγιο','Πορτογαλία','Ισπανία','Σουηδία','Γαλλία','Ολλανδία','Λουξεμβούργο', 'Ελλάδα', 'Λιθουανία', 'Ιταλία', 'Ρουμανία', 'Εσθονία', 'Πολωνία','Γερμανία','Φινλανδία','Βουλγαρία','Σλοβακία','Ουγγαρία',  'Λετονία','Τσεχία')
@@ -3730,11 +3787,49 @@ european_trade_energy = data.frame(Countries_2,natural_gas, Oil_petroleum, solid
   mutate(types_gr = case_when(types == "natural_gas"~'Φυσικό αέριο', 
                               types == 'Oil_petroleum' ~ 'Πετρέλαιο', 
                               # types == 'solid_fuels' ~ 'Στερεά καύσιμα', 
-                              TRUE ~ 'NA')) 
+                              TRUE ~ 'NA')) %>% 
+ mutate(types_eng = case_when(types == "natural_gas"~'Natural gas', 
+                              types == 'Oil_petroleum' ~ 'Oil / Petroleum', 
+                              # types == 'solid_fuels' ~ 'Στερεά καύσιμα', 
+                              TRUE ~ 'NA')) %>% 
+    mutate(countries_eng = case_when(Countries_2 == 'Δανία' ~ 'Denmark', 
+                                                   Countries_2 == 'Φινλανδία' ~ 'Finland', 
+                                                 Countries_2 == 'Σουηδία' ~ 'Sweden', 
+                                                 Countries_2 == 'Ολλανδία' ~ 'Netherlands', 
+                                                 Countries_2 == 'Ιρλανδία' ~ 'Ireland', 
+                                                 Countries_2 == 'Μάλτα' ~ 'Malta', 
+                                                 Countries_2 == 'Εσθονία' ~ 'Estonia', 
+                                                 Countries_2 == 'Λουξεμβούργο' ~ 'Luxembourg', 
+                                                 Countries_2 == 'Ισπανία' ~ 'Spain', 
+                                                   Countries_2 == 'Αυστρία' ~ 'Austria',  
+                                                   Countries_2 == 'Γερμανία' ~ 'Germany', 
+                                                 Countries_2 == 'Βέλγιο' ~ 'Belgium', 
+                                                 Countries_2 == 'Σλοβενία' ~ 'Slovenia',
+                                                   Countries_2 == 'Λιθουανία' ~ 'Lithuania',
+                                                   Countries_2 == 'ΗΒ' ~ 'UK', 
+                                                 Countries_2 == 'Γαλλία' ~ 'France', 
+                                                 Countries_2 == 'Πορτογαλία' ~ 'Portugal', 
+                                                 Countries_2 == 'Λετονία' ~ 'Latvia', 
+                                                   Countries_2 == 'Τσεχία' ~ 'Czechia', 
+                                                 Countries_2 == 'Κροατία' ~ 'Croatia', 
+                                                 Countries_2 == 'Ιταλία' ~ 'Italy',
+                                                 Countries_2 == 'Κύπρος' ~ 'Cyprus', 
+                                                   Countries_2 == 'Σλοβακία' ~ 'Slovakia', 
+                                                   Countries_2 == 'Ουγγαρία' ~ 'Hungary', 
+                                                   Countries_2 == 'Πολωνία' ~ 'Poland', 
+                                                   Countries_2 == 'Ελλάδα' ~ 'Greece',
+                                                   Countries_2 == 'Βουλγαρία'~ 'Bulgaria', 
+                                                   Countries_2 == 'Ρουμανία' ~ 'Romania', 
+                                                   Countries_2 == 'ΕΕ' ~ 'EU', 
+                                                   TRUE ~ 'NA'))
 
 european_trade_energy$Countries_2 = factor(european_trade_energy$Countries_2, levels=c('Κύπρος', 'Μάλτα','Ιρλανδία','Κροατία','Δανία','Αυστρία','Βέλγιο','Πορτογαλία','Ισπανία','Σουηδία','Γαλλία','Ολλανδία','Λουξεμβούργο', 'Ελλάδα', 'Λιθουανία', 'Ιταλία', 'Ρουμανία', 'Εσθονία','Πολωνία','Γερμανία','Φινλανδία','Βουλγαρία','Σλοβακία','Ουγγαρία',  'Λετονία','Τσεχία'))
 
+european_trade_energy$countries_eng = factor(european_trade_energy$countries_eng, levels=c('Cyprus', 'Malta','Ireland','Croatia','Denmark','Austria','Belgium','Portugal','Spain','Sweden','France','Netherlands','Luxembourg', 'Greece', 'Lithuania', 'Italy', 'Romania','Estonia','Poland','Germany','Finland','Bulgaria','Slovakia','Hungary',  'Latvia','Czechia'))
+
 european_trade_energy$types_gr = factor(european_trade_energy$types_gr, levels=c('Φυσικό αέριο','Πετρέλαιο','Στερεά καύσιμα'))
+
+european_trade_energy$types_eng = factor(european_trade_energy$types_eng, levels=c('Natural gas','Oil / Petroleum'))
 
 
 plot_gr_european_trade_energy = ggplot(european_trade_energy, aes(Countries_2, percentage_imports, fill = factor(types_gr)))+
@@ -3757,10 +3852,33 @@ plot_gr_european_trade_energy = ggplot(european_trade_energy, aes(Countries_2, p
         plot.caption = element_text(size = 10, hjust = 0))+
   scale_x_discrete(labels=c("Ελλάδα"=expression(bold(Ελλάδα)), parse=TRUE))
   
+plot_eng_european_trade_energy = ggplot(european_trade_energy, aes(countries_eng, percentage_imports, fill = factor(types_eng)))+
+    theme_bw()+
+    coord_flip()+
+    geom_bar(stat = "identity", width = 0.8)+
+    facet_grid(~types_eng)+
+    theme_solarized() + 
+    labs(title='Energy imports from Russia \n(% of total imports) ', x='', y='%') +
+  theme(axis.title = element_text(), 
+        # panel.border = element_blank(),
+        strip.text.x = element_text(size = 12, angle = 0, face = "bold"),
+        axis.text.y = element_text(color = "grey20", size = 14, angle = 0, face = "bold"),
+        axis.text.x = element_text(color = "grey20", size = 10, angle = 0, face = "bold"),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 14),
+        legend.position = 'none',
+        plot.title = element_text(size = 17, face = 'bold'),
+        # plot.caption = element_text(size = 10, hjust = 0),
+        plot.caption = element_text(size = 10, hjust = 0))+
+  scale_x_discrete(labels=c("Greece"=expression(bold(Greece)), parse=TRUE))
 
 final_plot  = grid.arrange(plot_gr_european_trade, plot_gr_european_trade_energy, ncol=2)
 
+final_plot_eng = grid.arrange(plot_eng_european_trade, plot_eng_european_trade_energy, ncol=2)
+
 ggsave("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/March/Week 3/final_plot.png",final_plot,  width = 33, height = 25, units = 'cm')
+
+ggsave("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/March/Week 3/final_plot_eng.png",final_plot_eng,  width = 33, height = 25, units = 'cm')
 
 ```
 
