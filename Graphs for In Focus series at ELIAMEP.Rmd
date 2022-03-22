@@ -4030,7 +4030,7 @@ plot_grc_eda = ggplot(data_eda, aes(Countries_gr, percentage, fill = factor(Year
   labs(caption="Γράφημα: ΕΛΙΑΜΕΠ, Πηγή: European Defence Agency")
 
 ggsave("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/March/Week 4/plot_grc_eda.png",plot_grc_eda,  width = 33, height = 25, units = 'cm')
-
+###
 ```
 
 
