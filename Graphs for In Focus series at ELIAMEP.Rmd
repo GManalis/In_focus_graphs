@@ -3887,6 +3887,7 @@ ggsave("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/March/Week 3/final_plo
 ```{r EDA defence data}
 Sys.getlocale()
 Sys.setlocale(category = "LC_ALL", locale = "Greek")
+
 data_eda = read.xlsx("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/March/Week 4/data-by-pms-for-the-eda-website.xlsx", 2) %>% group_by(Countries, Year) %>% 
   mutate(Total.Defence.Expenditure.as...of.GDP = Total.Defence.Expenditure.as...of.GDP*100) %>% 
   mutate(Total.Defence.Expenditure.as...of.Government.Expenditure = Total.Defence.Expenditure.as...of.Government.Expenditure*100) %>% 
@@ -3922,7 +3923,8 @@ Countries =='Greece'~'Ελλάδα',
 TRUE ~ 'NA')) %>% 
   mutate(types_gr  = case_when(types == '% of GDP' ~ '% επί του ΑΕΠ', 
                                types == '% of Government Expenditures' ~ '% επί των Κρατικών Δαπανών', 
-                               TRUE ~ 'NA'))
+                               TRUE ~ 'NA')) %>% 
+  filter(Year == "2017" | Year == '2020')
 
 
 data_eda$Countries = factor(data_eda$Countries, levels=c(
@@ -4002,7 +4004,8 @@ plot_eng_eda = ggplot(data_eda, aes(Countries, percentage, fill = factor(Year)))
         plot.title = element_text(size = 17, face = 'bold'),
         # plot.caption = element_text(size = 10, hjust = 0),
         plot.caption = element_text(size = 10, hjust = 0))+
-  scale_x_discrete(labels=c("Greece"=expression(bold(Greece)), parse=TRUE)) + 
+  scale_x_discrete(labels=c("Greece"=expression(bold(Greece)), parse=TRUE)) +
+  scale_y_continuous(limits=c(0,6),breaks = c(0,1,2,3,4,5,6))+
   labs(caption="Graph: ELIAMEP, Source: European Defence Agency")
 
 ggsave("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/March/Week 4/plot_eng_eda.png",plot_eng_eda,  width = 33, height = 25, units = 'cm')
@@ -4026,7 +4029,7 @@ plot_grc_eda = ggplot(data_eda, aes(Countries_gr, percentage, fill = factor(Year
         # plot.caption = element_text(size = 10, hjust = 0),
         plot.caption = element_text(size = 10, hjust = 0))+
   scale_x_discrete(labels=c("Ελλάδα"=expression(bold(Ελλάδα)), parse=TRUE)) + 
-  scale_y_continuous(limits=c(0,9),breaks = c(0,1,2,3,4,5,6,7,8,9))+
+  scale_y_continuous(limits=c(0,6),breaks = c(0,1,2,3,4,5,6))+
   labs(caption="Γράφημα: ΕΛΙΑΜΕΠ, Πηγή: European Defence Agency")
 
 ggsave("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/March/Week 4/plot_grc_eda.png",plot_grc_eda,  width = 33, height = 25, units = 'cm')
