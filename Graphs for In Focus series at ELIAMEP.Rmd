@@ -4312,6 +4312,117 @@ ggsave("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/March/Week 5/plot_eng_
 ```
 
 
+```{r JOBS RETENTION SCHEMES data from IMF FIGURE 4}
+Sys.getlocale()
+Sys.setlocale(category = "LC_ALL", locale = "Greek")
+
+
+Countries = c('Ελλάδα','Ιταλία', 'Ηνωμ.Βασίλειο', 'Ισπανία', 'Πορτογαλία', 'Σλοβακία', 'Αυστρία', 'Γαλλία', 'Μάλτα', 'Ισλανδία','Κύπρος', 'Σλοβενία', 'Τσεχία', 'Εσθονία','Λιθουανία', 'Λετονία', 'Γερμανία','Λουξεμβούργο','Σουηδία', 'Ιρλανδία','Φινλανδία','Δανία','Ολλανδία', 'Νορβηγία', 'Ουγγαρία','Βουλγαρία','Ρουμανία','Κροατία','Πολωνία')
+
+Employment = c(-1.23, -1.93, -0.43, -4.00, -1.64, -1.79, -1.57, -0.87, 2.73, -3.90, -0.5, -0.89, -1.60, -2.64, -1.43, -2.27, -0.92, 1.93, -1.26, -1.45, -2.06, -0.67, -0.46, -1.26, -2.10, -2.27, 0.19, -1.18, 0.09)
+
+Total_hours = c(-11.22, -10.93, -10.44, -10.37, -9.13, -8.84, -8.75, -8.24, -7.95, -6.93, -6.42, -6.32, -6.18, -5.93, -5.64, -5.57, -4.70, -3.32, -3.22, -3.05, -2.90, -2.78, -2.66, -2.18, -5.69, -4.67, -1.57, -1.32, -0.65)
+
+fig4_data = data.frame(Countries,Employment, Total_hours) %>% 
+            rowwise() %>% 
+            mutate(hours_per_worker = Total_hours - Employment) %>% 
+            pivot_longer(c('Employment','hours_per_worker'), 'type') %>% 
+            mutate(type_gr = case_when(type == 'Employment' ~ 'Απασχόληση', 
+                                       type == 'hours_per_worker' ~ 'Ώρες ανά εργαζόμενο',
+                                       TRUE ~ 'NA')) %>% 
+            mutate(Countries_eng = case_when(Countries == 'Ελλάδα' ~ 'Greece' ,
+                                             Countries == 'Ιταλία' ~ 'Italy', 
+                                             Countries == 'Ηνωμ.Βασίλειο'~ 'UK', 
+                                             Countries == 'Ισπανία'~ 'Spain', 
+                                             Countries == 'Πορτογαλία'~ 'Portugal', 
+                                             Countries == 'Σλοβακία'~ 'Slovakia', 
+                                             Countries == 'Αυστρία'~ 'Austria', 
+                                             Countries == 'Γαλλία'~ 'France', 
+                                             Countries == 'Μάλτα'~ 'Malta',
+                                             Countries == 'Ισλανδία'~ 'Iceland',
+                                             Countries == 'Κύπρος'~ 'Cyprus', 
+                                             Countries == 'Σλοβενία'~ 'Slovenia',
+                                             Countries == 'Τσεχία'~ 'Czechia',
+                                             Countries == 'Εσθονία'~ 'Estonia',
+                                             Countries == 'Ουγγαρία'~ 'Hungary',
+                                             Countries == 'Λιθουανία'~ 'Lithuania',
+                                             Countries == 'Λετονία'~ 'Latvia',
+                                             Countries == 'Γερμανία'~ 'Germany',
+                                             Countries == 'Βουλγαρία'~ 'Bulgaria',
+                                             Countries == 'Λουξεμβούργο'~ 'Luxembourg',
+                                             Countries == 'Σουηδία'~ 'Sweden', 
+                                             Countries == 'Ιρλανδία'~ 'Ireland',
+                                             Countries == 'Φινλανδία'~ 'Finland',
+                                             Countries == 'Δανία'~ 'Denmark',
+                                             Countries == 'Ολλανδία'~ 'Netherlands',
+                                             Countries == 'Νορβηγία'~ 'Nowray',
+                                             Countries == 'Ρουμανία'~ 'Romania',
+                                             Countries == 'Κροατία'~ 'Croatia',
+                                             Countries == 'Πολωνία'~ 'Poland', 
+                                             TRUE ~ 'NA')) %>% 
+  mutate(type_eng = case_when(type == 'Employment' ~ 'Employment', 
+                              type == 'hours_per_worker' ~'Hours per worker', 
+                              TRUE ~ 'NA'))
+
+fig4_data$Countries = factor(fig4_data$Countries, levels=c('Ελλάδα','Ιταλία', 'Ηνωμ.Βασίλειο', 'Ισπανία', 'Πορτογαλία', 'Σλοβακία', 'Αυστρία', 'Γαλλία', 'Μάλτα', 'Ισλανδία','Κύπρος', 'Σλοβενία', 'Τσεχία', 'Εσθονία','Ουγγαρία','Λιθουανία', 'Λετονία', 'Γερμανία','Βουλγαρία','Λουξεμβούργο','Σουηδία', 'Ιρλανδία','Φινλανδία','Δανία','Ολλανδία', 'Νορβηγία', 'Ρουμανία','Κροατία','Πολωνία'))
+
+fig4_data$Countries_eng = factor(fig4_data$Countries_eng, levels=c('Greece' ,'Italy','UK','Spain','Portugal','Slovakia', 'Austria','France', 'Malta', 'Iceland','Cyprus', 'Slovenia','Czechia','Estonia','Hungary','Lithuania','Latvia','Germany','Bulgaria','Luxembourg','Sweden', 'Ireland','Finland','Denmark','Netherlands','Nowray','Romania','Croatia','Poland'))
+
+plot_gr_tothours = ggplot(fig4_data)+
+    theme_bw()+
+    # coord_flip()+
+    geom_bar(aes(Countries, value, fill = type_gr), stat = "identity",position = "stack", width = 0.8)+
+  geom_point(data = fig4_data, aes(y = Total_hours, x = Countries,  shape = '23'), size = 2.6) + 
+  labs(title='Συνεισφορά στη μείωση συνολικού χρόνου εργασίας 2019-2020', x='', y='%') +
+  theme_solarized() + 
+  theme(axis.title = element_text(), 
+        # panel.border = element_blank(),
+        strip.text.x = element_text(size = 12, angle = 0, face = "bold"),
+        axis.text.y = element_text(color = "grey20", size = 14, angle = 0, face = "bold"),
+        axis.text.x = element_text(color = "grey20", size = 14, angle = 90, face = "bold"),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 14),
+        legend.position = 'top',
+        plot.title = element_text(size = 17, face = 'bold'),
+        # plot.caption = element_text(size = 10, hjust = 0),
+        plot.caption = element_text(size = 10, hjust = 0))+
+  scale_x_discrete(labels=c("Ελλάδα"=expression(bold(Ελλάδα)), parse=TRUE))+
+  scale_y_continuous(limits=c(-12,4),breaks = c(-12, -10,-8,-6,-4,-2,0,2,4))+
+  scale_fill_manual(name = "", values = c("Απασχόληση" = "violetred", 'Ώρες ανά εργαζόμενο'="dodgerblue1")) +
+  scale_shape_manual(name = "", values = c("23" = 17), labels = c("Συνολικός χρόνος εργασίας"))+
+  labs(caption="Γράφημα: ΕΛΙΑΜΕΠ, Πηγή: Eurostat, IMF")
+
+
+plot_eng_tothours = ggplot(fig4_data)+
+    theme_bw()+
+    # coord_flip()+
+    geom_bar(aes(Countries_eng, value, fill = type_eng), stat = "identity",position = "stack", width = 0.8)+
+  geom_point(data = fig4_data, aes(y = Total_hours, x = Countries_eng,  shape = '23'), size = 2.6) + 
+  labs(title='Contributions to total hours worked growth 2019-2020', x='', y='%') +
+  theme_solarized() + 
+  theme(axis.title = element_text(), 
+        # panel.border = element_blank(),
+        strip.text.x = element_text(size = 12, angle = 0, face = "bold"),
+        axis.text.y = element_text(color = "grey20", size = 14, angle = 0, face = "bold"),
+        axis.text.x = element_text(color = "grey20", size = 14, angle = 90, face = "bold"),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 14),
+        legend.position = 'top',
+        plot.title = element_text(size = 17, face = 'bold'),
+        # plot.caption = element_text(size = 10, hjust = 0),
+        plot.caption = element_text(size = 10, hjust = 0))+
+  scale_x_discrete(labels=c("Greece"=expression(bold(Greece)), parse=TRUE))+
+  scale_y_continuous(limits=c(-12,4),breaks = c(-12, -10,-8,-6,-4,-2,0,2,4))+
+  scale_fill_manual(name = "", values = c("Employment" = "violetred", 'Hours per worker'="dodgerblue1")) +
+  scale_shape_manual(name = "", values = c("23" = 17), labels = c("Total hours"))+
+  labs(caption="Graph: ELIAMEP, Source: Eurostat, IMF")
+
+
+ggsave("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/April/Week 1/plot_gr_tothours.png",plot_gr_tothours,  width = 33, height = 25, units = 'cm')
+
+ggsave("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/April/Week 1/plot_eng_tothours.png",plot_eng_tothours,  width = 33, height = 25, units = 'cm')
+        
+```
 
 
 
