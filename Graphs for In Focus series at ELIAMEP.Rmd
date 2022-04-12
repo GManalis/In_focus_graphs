@@ -4425,6 +4425,143 @@ ggsave("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/April/Week 1/plot_eng_
 ```
 
 
+```{r Oil and Gas as Percentage Russian Exports}
+Sys.getlocale()
+Sys.setlocale(category = "LC_ALL", locale = "Greek")
+oil = read.csv("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/April/Week 2/oil_percentage_russian_exports.csv")
+gas = read.csv("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/April/Week 2/natural_gas_percentage_russian_exports.csv")
+
+
+colnames(oil)[colnames(oil)=="X1999.9372251168656"]="Year"
+colnames(oil)[colnames(oil)=="X73.38100015156616"]="Oil_Share_tot_rus_exports"
+
+colnames(gas)[colnames(gas)=="X1999.9372251168656"]="Year"
+colnames(gas)[colnames(gas)=="X62.57486705106075"]="Gas_Share_tot_rus_exports"
+
+oil = oil %>% mutate(Year = round(Year)) %>% group_by(Year) %>% mutate(Oil_Share_tot_rus_exports = mean(Oil_Share_tot_rus_exports)) %>% ungroup() %>% filter(!duplicated(Year))
+
+gas = gas %>% mutate(Year = round(Year)) %>% group_by(Year) %>% mutate(Gas_Share_tot_rus_exports = mean(Gas_Share_tot_rus_exports)) %>% ungroup() %>% filter(!duplicated(Year))
+
+oil_gas_shares_tot_xp = left_join(oil,gas, by = 'Year') %>% pivot_longer(cols = "Oil_Share_tot_rus_exports":"Gas_Share_tot_rus_exports", names_to = 'energy', values_to = 'share') %>% 
+  mutate(energy = case_when(energy == 'Oil_Share_tot_rus_exports'~'Oil and Petr. products', 
+                            energy == 'Gas_Share_tot_rus_exports' ~ 'Natural gas', 
+                            TRUE ~ 'NA')) %>% 
+  mutate(energy_gr = case_when(energy == 'Oil and Petr. products'~'Πετρέλαιο και πετρ. προϊόντα', 
+                            energy == 'Natural gas' ~ 'Φυσικό αέριο', 
+                            TRUE ~ 'NA'))
+
+plot_gr_rus_oil_gas = ggplot(oil_gas_shares_tot_xp, aes(x=Year, y=share, group=energy_gr)) +
+  geom_line(aes(linetype = energy_gr), size = 0.8)+
+  labs(title='Εισαγωγές Ρωσικής ενέργειας από ΕΕ, ΗΒ και ΗΠΑ\n(ως ποσοστό επί των αντίστοιχων εξαγωγών)', x='', y='%') +
+  theme_solarized() + 
+  theme(axis.title = element_text(), 
+        # panel.border = element_blank(),
+        strip.text.x = element_text(size = 12, angle = 0, face = "bold"),
+        axis.text.y = element_text(color = "grey20", size = 14, angle = 0, face = "bold"),
+        axis.text.x = element_text(color = "grey20", size = 14, angle = 0, face = "bold"),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 14),
+        legend.position = 'top',
+        plot.title = element_text(size = 15, face = 'bold'),
+        # plot.caption = element_text(size = 10, hjust = 0),
+        plot.caption = element_text(size = 10, hjust = 0))+
+    labs(caption="Γράφημα: ΕΛΙΑΜΕΠ, Πηγή: Elina Ribakova-CBR, EIA, Eurostat, IIF")
+
+ggsave("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/April/Week 2/plot_gr_rus_oil_gas.png",plot_gr_rus_oil_gas,  width = 33, height = 25, units = 'cm')
+
+
+plot_eng_rus_oil_gas = ggplot(oil_gas_shares_tot_xp, aes(x=Year, y=share, group=energy)) +
+  geom_line(aes(linetype = energy), size = 0.8)+
+  labs(title='Imports of Russian energy by EU, UK and US\n(shares of respective Russian exports)', x='', y='%') +
+  theme_solarized() + 
+  theme(axis.title = element_text(), 
+        # panel.border = element_blank(),
+        strip.text.x = element_text(size = 12, angle = 0, face = "bold"),
+        axis.text.y = element_text(color = "grey20", size = 14, angle = 0, face = "bold"),
+        axis.text.x = element_text(color = "grey20", size = 14, angle = 0, face = "bold"),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 14),
+        legend.position = 'top',
+        plot.title = element_text(size = 15, face = 'bold'),
+        # plot.caption = element_text(size = 10, hjust = 0),
+        plot.caption = element_text(size = 10, hjust = 0))+
+   labs(caption="Graph: ELIAMEP, Source: Elina Ribakova-CBR, EIA, Eurostat, IIF")
+
+ggsave("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/April/Week 2/plot_eng_rus_oil_gas.png",plot_eng_rus_oil_gas,  width = 33, height = 25, units = 'cm')
+
+# Pie CHART of Federal Budget Revenues 2021
+slices <- c(10, 36, 46, 6, 2)
+lbls <- c("Άλλα έσοδα", "Πετρέλαιο & Φυσ. Αέριο", "ΦΠΑ, Φόροι κατ/σης", "Φόροι εισοδήματος", "Μερίσματα")
+
+fed_budget = data.frame(slices, lbls) %>% mutate(lbls_eng = case_when(lbls == "Άλλα έσοδα" ~ "Other revenues", lbls == "Πετρέλαιο & Φυσ. Αέριο" ~ 'Oil and gas',lbls == "ΦΠΑ, Φόροι κατ/σης" ~ "VAT, excises & tariffs",
+                                                                      lbls == "Φόροι εισοδήματος"~ 'Income taxes',
+                                                                      lbls == "Μερίσματα" ~ 'Dividends', 
+                                                                      TRUE ~ 'NA'))
+
+fed_budget$lbls = factor(fed_budget$lbls, levels=c("Μερίσματα", "Φόροι εισοδήματος","Άλλα έσοδα", "Πετρέλαιο & Φυσ. Αέριο","ΦΠΑ, Φόροι κατ/σης"))
+
+fed_budget$lbls_eng = factor(fed_budget$lbls_eng, levels=c("Dividends", "Income taxes","Other revenues", "Oil and gas","VAT, excises & tariffs"))
+
+fed_budget = ggplot(fed_budget)+
+    theme_bw()+
+    # coord_flip()+
+    geom_bar(aes(slices, lbls, fill = lbls), stat = "identity",position = "stack", width = 0.8)+
+  labs(title='Έσοδα του Ρωσικού ομοσπονδιακού προϋπολογισμού, 2021 \n(% επί του συνόλου)', x='%', y='') +
+  theme_solarized() + 
+  theme(axis.title = element_text(), 
+        # panel.border = element_blank(),
+        strip.text.x = element_text(size = 12, angle = 0, face = "bold"),
+        axis.text.y = element_text(color = "grey20", size = 14, angle = 0, face = "bold"),
+        axis.text.x = element_text(color = "grey20", size = 14, angle = 0, face = "bold"),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 14),
+        legend.position = 'none',
+        plot.title = element_text(size = 17, face = 'bold'),
+        # plot.caption = element_text(size = 10, hjust = 0),
+        plot.caption = element_text(size = 10, hjust = 0))+
+  # scale_y_discrete(labels=c("Πετρέλαιο & Φυσ. Αέριο"=expression(bold(Πετρέλαιο & Φυσ. Αέριο)), parse=TRUE))+
+  # scale_y_continuous(limits=c(-12,4),breaks = c(-12, -10,-8,-6,-4,-2,0,2,4))+
+  # scale_fill_manual(name = "", values = c("Employment" = "violetred", 'Hours per worker'="dodgerblue1")) +
+  # scale_shape_manual(name = "", values = c("23" = 17), labels = c("Total hours"))+
+  labs(caption="")
+
+ggsave("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/April/Week 2/fed_budget.png",fed_budget,  width = 33, height = 25, units = 'cm')
+
+fed_budget_eng = ggplot(fed_budget)+
+    theme_bw()+
+    # coord_flip()+
+    geom_bar(aes(slices, lbls_eng, fill = lbls_eng), stat = "identity",position = "stack", width = 0.8)+
+  labs(title='Federal budget revenues  2021\n(% of total)', x='%', y='') +
+  theme_solarized() + 
+  theme(axis.title = element_text(), 
+        # panel.border = element_blank(),
+        strip.text.x = element_text(size = 12, angle = 0, face = "bold"),
+        axis.text.y = element_text(color = "grey20", size = 14, angle = 0, face = "bold"),
+        axis.text.x = element_text(color = "grey20", size = 14, angle = 0, face = "bold"),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 14),
+        legend.position = 'none',
+        plot.title = element_text(size = 15, face = 'bold'),
+        # plot.caption = element_text(size = 10, hjust = 0),
+        plot.caption = element_text(size = 10, hjust = 0))+
+  # scale_y_discrete(labels=c("Πετρέλαιο & Φυσ. Αέριο"=expression(bold(Πετρέλαιο & Φυσ. Αέριο)), parse=TRUE))+
+  # scale_y_continuous(limits=c(-12,4),breaks = c(-12, -10,-8,-6,-4,-2,0,2,4))+
+  # scale_fill_manual(name = "", values = c("Employment" = "violetred", 'Hours per worker'="dodgerblue1")) +
+  # scale_shape_manual(name = "", values = c("23" = 17), labels = c("Total hours"))+
+  labs(caption="")
+
+ggsave("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/April/Week 2/fed_budget_eng.png",fed_budget_eng,  width = 33, height = 25, units = 'cm')
+
+
+plot_all_grc = grid.arrange(plot_gr_rus_oil_gas, fed_budget, ncol=2)
+plot_all_eng = grid.arrange(plot_eng_rus_oil_gas, fed_budget_eng, ncol=2)
+
+ggsave("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/April/Week 2/plot_all_grc.png",plot_all_grc,  width = 33, height = 25, units = 'cm')
+
+ggsave("G:/My Drive/ELIAMEP - OBSERVATORY/In-Focus/Drafts/April/Week 2/plot_all_eng.png",plot_all_eng,  width = 33, height = 25, units = 'cm')
+
+```
+
 
 
 
